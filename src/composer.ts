@@ -121,6 +121,26 @@ function populateForeignArray<Type>(
   return array.length - 1 + offset;
 }
 
+/**
+ * A function which can rewrite the whole atomic transaction group before it is built, e.g. to
+ * add, remove, or reorder transactions.
+ *
+ * @remarks
+ * Build steps run once, in the order given to the {@link AtomicTransactionComposer} constructor,
+ * before the group ID is assigned. Unlike a {@link PreSignModifier}, a build step is not scoped
+ * to a single transaction, has no restrictions on what it can change, and (being configured on
+ * the composer rather than an individual transaction) is meant for whole-group shaping done by
+ * whoever assembles the composer -- not for pre-sign changes made just before handing the group
+ * off to a wallet for signing.
+ *
+ * @param currentGroup - The transactions and method calls added to the composer so far. Both may
+ *   be modified in place.
+ */
+export type BuildStep = (currentGroup: {
+  transactions: TransactionWithSigner[];
+  methodCalls: Map<number, ABIMethod>;
+}) => Promise<void>;
+
 /** A class used to construct and execute atomic transaction groups */
 export class AtomicTransactionComposer {
   /** The maximum size of an atomic transaction group. */
@@ -131,6 +151,16 @@ export class AtomicTransactionComposer {
   private methodCalls: Map<number, ABIMethod> = new Map();
   private signedTxns: Uint8Array[] = [];
   private txIDs: string[] = [];
+  private pendingPreSignModifiers = false;
+  private buildSteps: BuildStep[];
+
+  /**
+   * @param buildSteps - Whole-group build steps to run, in order, the first time this composer's
+   *   group is built. See {@link BuildStep}.
+   */
+  constructor(buildSteps?: BuildStep[]) {
+    this.buildSteps = buildSteps ?? [];
+  }
 
   /**
    * Get the status of this composer's transaction group.
@@ -156,7 +186,7 @@ export class AtomicTransactionComposer {
    * would apply them a second time, on top of their own prior output.
    */
   clone(): AtomicTransactionComposer {
-    const theClone = new AtomicTransactionComposer();
+    const theClone = new AtomicTransactionComposer(this.buildSteps);
     const alreadyBuilt =
       this.status !== AtomicTransactionComposerStatus.BUILDING;
 
@@ -185,7 +215,10 @@ export class AtomicTransactionComposer {
    * not BUILDING, or if adding this transaction causes the current group to exceed MAX_GROUP_SIZE.
    */
   addTransaction(txnAndSigner: TransactionWithSigner): void {
-    if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
+    if (
+      this.status !== AtomicTransactionComposerStatus.BUILDING ||
+      this.pendingPreSignModifiers
+    ) {
       throw new Error(
         'Cannot add transactions when composer status is not BUILDING'
       );
@@ -283,7 +316,10 @@ export class AtomicTransactionComposer {
     /** A transaction signer that can authorize this application call from sender */
     signer: TransactionSigner;
   }): void {
-    if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
+    if (
+      this.status !== AtomicTransactionComposerStatus.BUILDING ||
+      this.pendingPreSignModifiers
+    ) {
       throw new Error(
         'Cannot add transactions when composer status is not BUILDING'
       );
@@ -535,13 +571,19 @@ export class AtomicTransactionComposer {
         throw new Error('Cannot build a group with 0 transactions');
       }
 
+      if (this.buildSteps?.length) {
+        throw Error(
+          'AtomicTransactionComposer.buildGroup was called on a group with build steps. Use asyncBuildGroup instead'
+        );
+      }
+
       const groupHasPreSignModifiers = this.transactions.find(
         (t) => t.preSignModifier !== undefined
       );
 
       if (groupHasPreSignModifiers) {
-        console.warn(
-          `AtomicTransactionComposer.buildGroup was called on a group with transaction pre-sign modifiers. Use buildGroupWithPreSignModifiers instead`
+        throw Error(
+          `AtomicTransactionComposer.buildGroup was called on a group with transaction pre-sign modifiers. Use asyncBuildGroup instead`
         );
       }
 
@@ -556,11 +598,77 @@ export class AtomicTransactionComposer {
   }
 
   /**
+   * Run this composer's build steps (if any haven't already run) and, unless the group has a
+   * pre-sign modifier awaiting {@link gatherSignatures}, assign the group ID.
+   *
+   * @remarks
+   * If any transaction in the group has a {@link PreSignModifier}, the group ID is *not*
+   * assigned by this call unless `withPreSignModifiers` is set: pre-sign modifiers can still
+   * insert transactions at the group's boundaries, which would change the group ID, so
+   * assigning it early would produce a value that doesn't reflect the eventual group. Instead,
+   * the composer's status remains BUILDING and further calls to this method are required to
+   * finish the build (see {@link addTransaction}, which refuses to add more transactions once
+   * this point is reached).
+   *
+   * @param opts - If `withPreSignModifiers` is true, also run any pre-sign modifiers and assign
+   *   the final group ID, finishing the build. Use this right before signing -- see
+   *   {@link PreSignModifier} for why pre-sign modifier usage should be limited until then.
+   */
+  async asyncBuildGroup(opts?: {
+    withPreSignModifiers: boolean;
+  }): Promise<TransactionWithSigner[]> {
+    if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
+      return this.transactions;
+    }
+
+    if (this.pendingPreSignModifiers) {
+      if (opts?.withPreSignModifiers) {
+        return this.buildGroupWithPreSignModifiers();
+      }
+      return this.transactions;
+    }
+
+    if (this.transactions.length === 0) {
+      throw new Error('Cannot build a group with 0 transactions');
+    }
+
+    for (const step of this.buildSteps) {
+      // eslint-disable-next-line no-await-in-loop
+      await step({
+        transactions: this.transactions,
+        methodCalls: this.methodCalls,
+      });
+    }
+
+    const groupHasPreSignModifiers = this.transactions.some(
+      (t) => t.preSignModifier !== undefined
+    );
+
+    if (groupHasPreSignModifiers) {
+      if (opts?.withPreSignModifiers) {
+        return this.buildGroupWithPreSignModifiers();
+      }
+
+      this.pendingPreSignModifiers = true;
+      return this.transactions;
+    }
+
+    if (this.transactions.length > 1) {
+      assignGroupID(
+        this.transactions.map((txnWithSigner) => txnWithSigner.txn)
+      );
+    }
+    this.status = AtomicTransactionComposerStatus.BUILT;
+
+    return this.transactions;
+  }
+
+  /**
    * Finalize the transaction group and return the finalized transactions, running each
    * transaction's {@link PreSignModifier} (if any) first.
    *
    * @remarks
-   * Used instead of {@link buildGroup} whenever at least one transaction in the group has
+   * Invoked by {@link asyncBuildGroup} whenever at least one transaction in the group has
    * a `preSignModifier`. Each unique pre-sign modifier runs once with all transaction
    * indices assigned to it, against the group as it looked before any pre-sign modifier ran
    * this build. A pre-sign modifier's
@@ -572,7 +680,9 @@ export class AtomicTransactionComposer {
    *
    * The composer's status will be at least BUILT after executing this method.
    */
-  async buildGroupWithPreSignModifiers(): Promise<TransactionWithSigner[]> {
+  private async buildGroupWithPreSignModifiers(): Promise<
+    TransactionWithSigner[]
+  > {
     if (this.status === AtomicTransactionComposerStatus.BUILDING) {
       if (this.transactions.length === 0) {
         throw new Error('Cannot build a group with 0 transactions');
@@ -688,14 +798,10 @@ export class AtomicTransactionComposer {
       return this.signedTxns;
     }
 
-    const groupHasPreSignModifiers = this.transactions.find(
-      (t) => t.preSignModifier !== undefined
-    );
-
     // retrieve built transactions and verify status is BUILT
-    const txnsWithSigners = groupHasPreSignModifiers
-      ? await this.buildGroupWithPreSignModifiers()
-      : this.buildGroup();
+    const txnsWithSigners = await this.asyncBuildGroup({
+      withPreSignModifiers: true,
+    });
 
     const txnGroup = txnsWithSigners.map((txnWithSigner) => txnWithSigner.txn);
 

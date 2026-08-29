@@ -6,6 +6,7 @@ import {
   Account,
   AtomicTransactionComposer,
   AtomicTransactionComposerStatus,
+  BuildStep,
   PreSignModifier,
   SignedTransaction,
   base64ToBytes,
@@ -14,50 +15,74 @@ import {
   makeBasicAccountTransactionSigner,
   makePaymentTxnWithSuggestedParamsFromObject,
 } from '../src';
+import { computeGroupID } from '../src/group';
+import { Transaction } from '../src/transaction';
 
-describe('AtomicTransactionComposer pre-sign modifiers', () => {
-  const suggestedParams = {
-    genesisHash: base64ToBytes('SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='),
-    genesisID: '',
-    firstValid: 0,
-    lastValid: 1000,
-    fee: 1000,
-    flatFee: true,
-    minFee: 1000,
-  };
+const suggestedParams = {
+  genesisHash: base64ToBytes('SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='),
+  genesisID: '',
+  firstValid: 0,
+  lastValid: 1000,
+  fee: 1000,
+  flatFee: true,
+  minFee: 1000,
+};
 
-  const method = ABIMethod.fromSignature('add(uint64,uint64)uint64');
-  const appID = 1234;
+function decodeSignedTxns(stxns: Uint8Array[]): SignedTransaction[] {
+  return stxns.map((stxn) => decodeMsgpack(stxn, SignedTransaction));
+}
 
-  function decodeSignedTxns(stxns: Uint8Array[]): SignedTransaction[] {
-    return stxns.map((stxn) => decodeMsgpack(stxn, SignedTransaction));
-  }
+// AtomicTransactionComposer keeps its txnIndex -> ABIMethod map private; the
+// only way to observe that a pre-sign modifier correctly remapped a method call's
+// key (without standing up a mock AlgodClient for simulate/execute) is to read it
+// directly off the instance.
+function getMethodCalls(
+  composer: AtomicTransactionComposer
+): Map<number, ABIMethod> {
+  return (composer as unknown as { methodCalls: Map<number, ABIMethod> })
+    .methodCalls;
+}
 
-  // AtomicTransactionComposer keeps its txnIndex -> ABIMethod map private; the
-  // only way to observe that a pre-sign modifier correctly remapped a method call's
-  // key (without standing up a mock AlgodClient for simulate/execute) is to read it
-  // directly off the instance.
-  function getMethodCalls(
-    composer: AtomicTransactionComposer
-  ): Map<number, ABIMethod> {
-    return (composer as unknown as { methodCalls: Map<number, ABIMethod> })
-      .methodCalls;
-  }
+// Cryptographically verifies that `stxn` was signed by `signer`, i.e. that the
+// composer paired the right TransactionSigner with the right transaction index
+// even after the group was reshaped by a pre-sign modifier.
+function assertSignedBy(stxn: SignedTransaction, signer: Account): void {
+  assert.ok(stxn.sig, 'expected transaction to carry a signature');
+  assert.ok(
+    nacl.sign.detached.verify(
+      stxn.txn.bytesToSign(),
+      stxn.sig,
+      signer.addr.publicKey
+    ),
+    'signature does not verify against the expected signer'
+  );
+}
 
-  // Cryptographically verifies that `stxn` was signed by `signer`, i.e. that the
-  // composer paired the right TransactionSigner with the right transaction index
-  // even after the group was reshaped by a pre-sign modifier.
-  function assertSignedBy(stxn: SignedTransaction, signer: Account): void {
-    assert.ok(stxn.sig, 'expected transaction to carry a signature');
-    assert.ok(
-      nacl.sign.detached.verify(
-        stxn.txn.bytesToSign(),
-        stxn.sig,
-        signer.addr.publicKey
-      ),
-      'signature does not verify against the expected signer'
+// Independently recomputes the group ID that algod would derive from the final built
+// transactions and checks it against what the composer actually assigned. This catches the
+// case where the composer's `grp` field is internally self-consistent across every
+// transaction (which the other assertions in this file check) but was computed from inputs
+// that already had a stale, non-final `grp` baked in -- which is invisible to an
+// internal-consistency check alone.
+function assertValidGroupID(stxns: SignedTransaction[]): void {
+  const cleanTxns = stxns.map(({ txn }) => {
+    const encoded = txn.toEncodingData();
+    encoded.delete('grp');
+    return Transaction.fromEncodingData(encoded);
+  });
+  const expectedGroupID = computeGroupID(cleanTxns);
+  for (const { txn } of stxns) {
+    assert.deepStrictEqual(
+      txn.group,
+      expectedGroupID,
+      'group ID does not match an independent recomputation from the final transactions'
     );
   }
+}
+
+describe('AtomicTransactionComposer pre-sign modifiers', () => {
+  const method = ABIMethod.fromSignature('add(uint64,uint64)uint64');
+  const appID = 1234;
 
   it('should allow a pre-sign modifier to change a transaction within the group', async () => {
     const composer = new AtomicTransactionComposer();
@@ -137,6 +162,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     assert.ok(modified.txn.group && modified.txn.group.length > 0);
     assert.deepStrictEqual(modified.txn.group, untouched.txn.group);
     assert.deepStrictEqual(modified.txn.group, appCall.txn.group);
+    assertValidGroupID([modified, untouched, appCall]);
 
     // A fee-only modification doesn't move any transaction, so the method
     // call's key in the internal methodCalls map should be unchanged.
@@ -188,6 +214,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     assert.strictEqual(stxns[1].txn.fee, 1000n);
     assert.strictEqual(stxns[2].txn.fee, 2000n);
     stxns.forEach((stxn, index) => assertSignedBy(stxn, accounts[index]));
+    assertValidGroupID(stxns);
   });
 
   it('should reject changes to transactions not assigned to a pre-sign modifier', async () => {
@@ -221,7 +248,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     });
 
     await assert.rejects(
-      composer.buildGroupWithPreSignModifiers(),
+      composer.asyncBuildGroup({ withPreSignModifiers: true }),
       /cannot modify transaction at index 1/
     );
   });
@@ -296,6 +323,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     assert.ok(sponsor.txn.group && sponsor.txn.group.length > 0);
     assert.deepStrictEqual(sponsor.txn.group, original.txn.group);
     assert.deepStrictEqual(sponsor.txn.group, appCall.txn.group);
+    assertValidGroupID([sponsor, original, appCall]);
 
     // The method call was originally added at index 1; the pre-sign modifier
     // prepended a txn ahead of it, so its key in the internal methodCalls map must
@@ -377,6 +405,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     assert.ok(cleanup.txn.group && cleanup.txn.group.length > 0);
     assert.deepStrictEqual(cleanup.txn.group, appCall.txn.group);
     assert.deepStrictEqual(cleanup.txn.group, original.txn.group);
+    assertValidGroupID([original, appCall, cleanup]);
 
     // The method call was added at index 1, after the pre-sign-modifier-bearing
     // transaction; nothing about the pre-sign modifier should have moved it.
@@ -438,6 +467,141 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
       preSignModifierCalls,
       1,
       'the pre-sign modifier should not run again for the clone'
+    );
+  });
+});
+
+describe('AtomicTransactionComposer build steps', () => {
+  it('should run whole-group build steps before assigning the group ID', async () => {
+    const account1 = generateAccount();
+    const account2 = generateAccount();
+
+    const txn1 = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account1.addr,
+      receiver: account2.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+
+    let buildStepCalls = 0;
+    const addSecondTxnStep: BuildStep = async ({ transactions }) => {
+      buildStepCalls += 1;
+      const txn2 = makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account2.addr,
+        receiver: account1.addr,
+        amount: 500,
+        suggestedParams,
+      });
+      transactions.push({
+        txn: txn2,
+        signer: makeBasicAccountTransactionSigner(account2),
+      });
+    };
+
+    const composer = new AtomicTransactionComposer([addSecondTxnStep]);
+    composer.addTransaction({
+      txn: txn1,
+      signer: makeBasicAccountTransactionSigner(account1),
+    });
+
+    assert.strictEqual(composer.count(), 1);
+
+    const stxns = decodeSignedTxns(await composer.gatherSignatures());
+
+    assert.strictEqual(buildStepCalls, 1);
+    assert.strictEqual(stxns.length, 2);
+    assertSignedBy(stxns[0], account1);
+    assertSignedBy(stxns[1], account2);
+    assertValidGroupID(stxns);
+  });
+
+  it('should preserve build steps when cloning a composer that has not yet built', async () => {
+    const account1 = generateAccount();
+    const account2 = generateAccount();
+
+    const txn1 = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account1.addr,
+      receiver: account2.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+
+    let buildStepCalls = 0;
+    const addSecondTxnStep: BuildStep = async ({ transactions }) => {
+      buildStepCalls += 1;
+      const txn2 = makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account2.addr,
+        receiver: account1.addr,
+        amount: 500,
+        suggestedParams,
+      });
+      transactions.push({
+        txn: txn2,
+        signer: makeBasicAccountTransactionSigner(account2),
+      });
+    };
+
+    const composer = new AtomicTransactionComposer([addSecondTxnStep]);
+    composer.addTransaction({
+      txn: txn1,
+      signer: makeBasicAccountTransactionSigner(account1),
+    });
+
+    const clone = composer.clone();
+    const stxns = decodeSignedTxns(await clone.gatherSignatures());
+
+    assert.strictEqual(
+      buildStepCalls,
+      1,
+      'the cloned composer should still run the build steps it was constructed with'
+    );
+    assert.strictEqual(stxns.length, 2);
+  });
+
+  it('should reject adding more transactions once build steps have run and a pre-sign modifier is pending', async () => {
+    const account = generateAccount();
+    const receiver = generateAccount();
+
+    const txn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account.addr,
+      receiver: receiver.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+    const noopPreSignModifier: PreSignModifier = async () => ({});
+
+    const composer = new AtomicTransactionComposer();
+    composer.addTransaction({
+      txn,
+      signer: makeBasicAccountTransactionSigner(account),
+      preSignModifier: noopPreSignModifier,
+    });
+
+    await composer.asyncBuildGroup();
+
+    // Build steps have run and the group is waiting on its pre-sign modifier, but the
+    // composer's status is intentionally still BUILDING (see asyncBuildGroup) until that
+    // modifier runs -- addTransaction/addMethodCall must not treat that as an invitation to
+    // add more transactions behind the build steps' back.
+    assert.strictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+
+    const anotherTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: receiver.addr,
+      receiver: account.addr,
+      amount: 1,
+      suggestedParams,
+    });
+
+    assert.throws(
+      () =>
+        composer.addTransaction({
+          txn: anotherTxn,
+          signer: makeBasicAccountTransactionSigner(receiver),
+        }),
+      /Cannot add transactions when composer status is not BUILDING/
     );
   });
 });
