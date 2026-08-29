@@ -231,16 +231,16 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
   };
 }
 
-/** A transaction added by a group modifier and the existing transaction whose signer it should use. */
-export interface GroupModifierAddedTransaction {
+/** A transaction added by a pre-sign modifier and the existing transaction whose signer it should use. */
+export interface PreSignModifierAddedTransaction {
   /** The transaction to add */
   txn: Transaction;
-  /** The index of a transaction assigned to this modifier whose signer will sign the added transaction */
+  /** The index of a transaction assigned to this pre-sign modifier whose signer will sign the added transaction */
   signerIndex: number;
 }
 
-/** Changes a group modifier wants to make to one of its assigned transactions. */
-export interface GroupModifierTransactionModification {
+/** Changes a pre-sign modifier wants to make to one of its assigned transactions. */
+export interface PreSignModifierTransactionModification {
   /** The index of the transaction to modify */
   index: number;
   /** If set, overrides this transaction's fee */
@@ -252,28 +252,29 @@ export interface GroupModifierTransactionModification {
 }
 
 /**
- * The result of running a {@link GroupModifier}: instructions for what the composer
+ * The result of running a {@link PreSignModifier}: instructions for what the composer
  * should insert at the boundaries of the whole group, and/or change about the transactions
- * assigned to the modifier, when building the group.
+ * assigned to the pre-sign modifier, when building the group.
  *
  * @remarks
  * `prependTxns`/`appendTxns` are inserted at the very start/end of the *whole* built group,
- * not next to a modifier-bearing transaction. A modifier cannot move, remove, or replace
- * any *existing* transaction, and cannot change any field other than `fee`, `firstValid`,
- * or `lastValid` on the transactions assigned to it. Because existing transactions only ever shift together
+ * not next to a transaction carrying a pre-sign modifier. A pre-sign modifier cannot move,
+ * remove, or replace any *existing* transaction, and cannot change any field other than
+ * `fee`, `firstValid`, or `lastValid` on the transactions assigned to it. Because existing
+ * transactions only ever shift together
  * (from a prepend) or stay put (an append only adds after them), the relative offset
- * between any two existing transactions never changes — which is what keeps a modifier from
- * disturbing an ABI method call's transaction-argument adjacency elsewhere in the group
+ * between any two existing transactions never changes — which is what keeps a pre-sign modifier
+ * from disturbing an ABI method call's transaction-argument adjacency elsewhere in the group
  * (ARC-4 resolves those purely by relative position) — and guarantees a dapp that its own
  * transaction's sender, receiver, args, etc. cannot be silently rewritten out from under it.
  */
-export interface GroupModifierResult {
+export interface PreSignModifierResult {
   /** Transactions to insert at the very beginning of the built group */
-  prependTxns?: GroupModifierAddedTransaction[];
-  /** Changes to make to transactions assigned to this modifier */
-  modifications?: GroupModifierTransactionModification[];
+  prependTxns?: PreSignModifierAddedTransaction[];
+  /** Changes to make to transactions assigned to this pre-sign modifier */
+  modifications?: PreSignModifierTransactionModification[];
   /** Transactions to insert at the very end of the built group */
-  appendTxns?: GroupModifierAddedTransaction[];
+  appendTxns?: PreSignModifierAddedTransaction[];
 }
 
 /**
@@ -282,26 +283,28 @@ export interface GroupModifierResult {
  * transaction at the start or end of the group.
  *
  * @remarks
- * {@link AtomicTransactionComposer.buildGroupWithModifiers} runs each unique modifier once,
- * passing the indices of every transaction assigned to it. Each modifier receives the group
- * as it looked before any modifier ran
- * (except that fee changes, being applied in place, are visible to modifiers that run
+ * {@link AtomicTransactionComposer.buildGroupWithPreSignModifiers} runs each unique
+ * pre-sign modifier once,
+ * passing the indices of every transaction assigned to it. Each pre-sign modifier receives
+ * the group
+ * as it looked before any pre-sign modifier ran
+ * (except that fee changes, being applied in place, are visible to pre-sign modifiers that run
  * later in the same build). Transactions introduced by `prependTxns`/`appendTxns` are
  * signed by the signer selected by their `signerIndex`, and are never themselves checked
- * for a `modifier`, so modifiers do not cascade within a single build. A modifier can only
- * modify or select signers from the indices passed to it.
+ * for a `preSignModifier`, so pre-sign modifiers do not cascade within a single build.
+ * A pre-sign modifier can only modify or select signers from the indices passed to it.
  *
  * @param txnGroup - The transactions in the atomic group, in order, as they were before
- *   this build's modifiers ran
- * @param indexesToModify - The indices of transactions assigned to this modifier
- * @returns A promise which resolves to the changes this modifier wants made to the group
- *   and to its assigned transactions
+ *   this build's pre-sign modifiers ran
+ * @param indexesToModify - The indices of transactions assigned to this pre-sign modifier
+ * @returns A promise which resolves to the changes this pre-sign modifier wants made to the
+ *   group and to its assigned transactions
  */
-export type GroupModifier = (
+export type PreSignModifier = (
   // eslint-disable-next-line no-use-before-define
   txnGroup: Transaction[],
   indexesToModify: number[]
-) => Promise<GroupModifierResult>;
+) => Promise<PreSignModifierResult>;
 
 /** Represents an unsigned transactions and a signer that can authorize that transaction. */
 export interface TransactionWithSigner {
@@ -309,8 +312,8 @@ export interface TransactionWithSigner {
   txn: Transaction;
   /** A transaction signer that can authorize txn */
   signer: TransactionSigner;
-  /** An optional modifier that can adjust this transaction's fee and validity window and/or insert transactions at the start/end of the group */
-  modifier?: GroupModifier;
+  /** An optional pre-sign modifier that can adjust this transaction's fee and validity window and/or insert transactions at the start/end of the group */
+  preSignModifier?: PreSignModifier;
 }
 
 /**

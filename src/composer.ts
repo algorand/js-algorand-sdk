@@ -23,7 +23,7 @@ import { assignGroupID } from './group.js';
 import { makeApplicationCallTxnFromObject } from './makeTxn.js';
 import {
   isTransactionWithSigner,
-  GroupModifier,
+  PreSignModifier,
   TransactionSigner,
   TransactionWithSigner,
 } from './signer.js';
@@ -151,9 +151,9 @@ export class AtomicTransactionComposer {
    * BUILDING, so additional transactions may be added to it.
    *
    * @remarks
-   * If this composer has already been built, its transactions' modifiers have already run
-   * and are not carried over to the clone — otherwise re-building the clone would apply
-   * them a second time, on top of their own prior output.
+   * If this composer has already been built, its transactions' pre-sign modifiers have
+   * already run and are not carried over to the clone — otherwise re-building the clone
+   * would apply them a second time, on top of their own prior output.
    */
   clone(): AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
@@ -161,7 +161,7 @@ export class AtomicTransactionComposer {
       this.status !== AtomicTransactionComposerStatus.BUILDING;
 
     theClone.transactions = this.transactions.map(
-      ({ txn, signer, modifier }) => {
+      ({ txn, signer, preSignModifier }) => {
         const txnMap = txn.toEncodingData();
         // erase the group ID
         txnMap.delete('grp');
@@ -169,7 +169,7 @@ export class AtomicTransactionComposer {
           // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
           txn: Transaction.fromEncodingData(txnMap),
           signer,
-          modifier: alreadyBuilt ? undefined : modifier,
+          preSignModifier: alreadyBuilt ? undefined : preSignModifier,
         };
       }
     );
@@ -535,13 +535,13 @@ export class AtomicTransactionComposer {
         throw new Error('Cannot build a group with 0 transactions');
       }
 
-      const groupHasModifiers = this.transactions.find(
-        (t) => t.modifier !== undefined
+      const groupHasPreSignModifiers = this.transactions.find(
+        (t) => t.preSignModifier !== undefined
       );
 
-      if (groupHasModifiers) {
+      if (groupHasPreSignModifiers) {
         console.warn(
-          `AtomicTransactionComposer.buildGroup was called on a group with transaction group modifiers. Use buildGroupWithModifiers instead`
+          `AtomicTransactionComposer.buildGroup was called on a group with transaction pre-sign modifiers. Use buildGroupWithPreSignModifiers instead`
         );
       }
 
@@ -557,12 +557,13 @@ export class AtomicTransactionComposer {
 
   /**
    * Finalize the transaction group and return the finalized transactions, running each
-   * transaction's {@link GroupModifier} (if any) first.
+   * transaction's {@link PreSignModifier} (if any) first.
    *
    * @remarks
    * Used instead of {@link buildGroup} whenever at least one transaction in the group has
-   * a `modifier`. Each unique modifier runs once with all transaction indices assigned to
-   * it, against the group as it looked before any modifier ran this build. A modifier's
+   * a `preSignModifier`. Each unique pre-sign modifier runs once with all transaction
+   * indices assigned to it, against the group as it looked before any pre-sign modifier ran
+   * this build. A pre-sign modifier's
    * `prependTxns`/`appendTxns` are collected into two blocks and inserted at the very
    * start/end of the built group; none of the existing transactions move
    * relative to one another, so this never disturbs an ABI method call's transaction-
@@ -571,7 +572,7 @@ export class AtomicTransactionComposer {
    *
    * The composer's status will be at least BUILT after executing this method.
    */
-  async buildGroupWithModifiers(): Promise<TransactionWithSigner[]> {
+  async buildGroupWithPreSignModifiers(): Promise<TransactionWithSigner[]> {
     if (this.status === AtomicTransactionComposerStatus.BUILDING) {
       if (this.transactions.length === 0) {
         throw new Error('Cannot build a group with 0 transactions');
@@ -582,31 +583,31 @@ export class AtomicTransactionComposer {
       const middleGroup: TransactionWithSigner[] = [];
       const appendGroup: TransactionWithSigner[] = [];
       const middleMethodCalls: Map<number, ABIMethod> = new Map();
-      const modifierIndexes: Map<GroupModifier, number[]> = new Map();
+      const preSignModifierIndexes: Map<PreSignModifier, number[]> = new Map();
 
-      for (const [index, { modifier }] of this.transactions.entries()) {
-        if (modifier) {
-          const indexes = modifierIndexes.get(modifier) ?? [];
+      for (const [index, { preSignModifier }] of this.transactions.entries()) {
+        if (preSignModifier) {
+          const indexes = preSignModifierIndexes.get(preSignModifier) ?? [];
           indexes.push(index);
-          modifierIndexes.set(modifier, indexes);
+          preSignModifierIndexes.set(preSignModifier, indexes);
         }
       }
 
-      for (const [modifier, indexesToModify] of modifierIndexes) {
+      for (const [preSignModifier, indexesToModify] of preSignModifierIndexes) {
         const { prependTxns, modifications, appendTxns } =
           // eslint-disable-next-line no-await-in-loop
-          await modifier(originalTxns, indexesToModify);
+          await preSignModifier(originalTxns, indexesToModify);
         const modifiedIndexes = new Set<number>();
 
         for (const modification of modifications ?? []) {
           if (!indexesToModify.includes(modification.index)) {
             throw new Error(
-              `Group modifier cannot modify transaction at index ${modification.index}`
+              `PreSignModifier cannot modify transaction at index ${modification.index}`
             );
           }
           if (modifiedIndexes.has(modification.index)) {
             throw new Error(
-              `Group modifier returned multiple modifications for transaction at index ${modification.index}`
+              `PreSignModifier returned multiple modifications for transaction at index ${modification.index}`
             );
           }
           modifiedIndexes.add(modification.index);
@@ -626,7 +627,7 @@ export class AtomicTransactionComposer {
         for (const { txn, signerIndex } of prependTxns ?? []) {
           if (!indexesToModify.includes(signerIndex)) {
             throw new Error(
-              `Group modifier cannot use signer from transaction at index ${signerIndex}`
+              `PreSignModifier cannot use signer from transaction at index ${signerIndex}`
             );
           }
           prependGroup.push({
@@ -638,7 +639,7 @@ export class AtomicTransactionComposer {
         for (const { txn, signerIndex } of appendTxns ?? []) {
           if (!indexesToModify.includes(signerIndex)) {
             throw new Error(
-              `Group modifier cannot use signer from transaction at index ${signerIndex}`
+              `PreSignModifier cannot use signer from transaction at index ${signerIndex}`
             );
           }
           appendGroup.push({
@@ -687,13 +688,13 @@ export class AtomicTransactionComposer {
       return this.signedTxns;
     }
 
-    const groupHasModifiers = this.transactions.find(
-      (t) => t.modifier !== undefined
+    const groupHasPreSignModifiers = this.transactions.find(
+      (t) => t.preSignModifier !== undefined
     );
 
     // retrieve built transactions and verify status is BUILT
-    const txnsWithSigners = groupHasModifiers
-      ? await this.buildGroupWithModifiers()
+    const txnsWithSigners = groupHasPreSignModifiers
+      ? await this.buildGroupWithPreSignModifiers()
       : this.buildGroup();
 
     const txnGroup = txnsWithSigners.map((txnWithSigner) => txnWithSigner.txn);
