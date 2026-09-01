@@ -107,9 +107,9 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
       modifications: [
         {
           index,
-          fee: txnToModify.fee * 3n,
-          firstValid: 5n,
-          lastValid: 1005n,
+          fee: txnToModify.fee * BigInt(3),
+          firstValid: BigInt(5),
+          lastValid: BigInt(1005),
         },
       ],
     });
@@ -141,14 +141,14 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
 
     const [modified, untouched, appCall] = decodeSignedTxns(stxns);
 
-    assert.strictEqual(modified.txn.fee, 3000n);
-    assert.strictEqual(modified.txn.firstValid, 5n);
-    assert.strictEqual(modified.txn.lastValid, 1005n);
+    assert.strictEqual(modified.txn.fee, BigInt(3000));
+    assert.strictEqual(modified.txn.firstValid, BigInt(5));
+    assert.strictEqual(modified.txn.lastValid, BigInt(1005));
     assertSignedBy(modified, account1);
 
-    assert.strictEqual(untouched.txn.fee, 1000n);
-    assert.strictEqual(untouched.txn.firstValid, 0n);
-    assert.strictEqual(untouched.txn.lastValid, 1000n);
+    assert.strictEqual(untouched.txn.fee, BigInt(1000));
+    assert.strictEqual(untouched.txn.firstValid, BigInt(0));
+    assert.strictEqual(untouched.txn.lastValid, BigInt(1000));
     assertSignedBy(untouched, account2);
 
     assert.strictEqual(appCall.txn.applicationCall?.appIndex, BigInt(appID));
@@ -194,7 +194,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
       return {
         modifications: indexesToModify.map((index) => ({
           index,
-          fee: txnGroup[index].fee + 1000n,
+          fee: txnGroup[index].fee + BigInt(1000),
         })),
       };
     };
@@ -210,9 +210,9 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     const stxns = decodeSignedTxns(await composer.gatherSignatures());
 
     assert.strictEqual(preSignModifierCalls, 1);
-    assert.strictEqual(stxns[0].txn.fee, 2000n);
-    assert.strictEqual(stxns[1].txn.fee, 1000n);
-    assert.strictEqual(stxns[2].txn.fee, 2000n);
+    assert.strictEqual(stxns[0].txn.fee, BigInt(2000));
+    assert.strictEqual(stxns[1].txn.fee, BigInt(1000));
+    assert.strictEqual(stxns[2].txn.fee, BigInt(2000));
     stxns.forEach((stxn, index) => assertSignedBy(stxn, accounts[index]));
     assertValidGroupID(stxns);
   });
@@ -234,7 +234,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
       suggestedParams,
     });
     const invalidPreSignModifier: PreSignModifier = async () => ({
-      modifications: [{ index: 1, fee: 2000n }],
+      modifications: [{ index: 1, fee: BigInt(2000) }],
     });
 
     composer.addTransaction({
@@ -304,11 +304,11 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     // The sponsor txn introduced by the pre-sign modifier is signed by the same
     // signer as the transaction that owned the pre-sign modifier.
     assert.ok(sponsor.txn.payment?.receiver.equals(account.addr));
-    assert.strictEqual(sponsor.txn.payment?.amount, 0n);
+    assert.strictEqual(sponsor.txn.payment?.amount, BigInt(0));
     assertSignedBy(sponsor, account);
 
     assert.ok(original.txn.payment?.receiver.equals(receiver.addr));
-    assert.strictEqual(original.txn.payment?.amount, 1000n);
+    assert.strictEqual(original.txn.payment?.amount, BigInt(1000));
     assertSignedBy(original, account);
 
     // The method call was pushed from index 1 to index 2 by the pre-sign modifier;
@@ -388,7 +388,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     const [original, appCall, cleanup] = decodeSignedTxns(stxns);
 
     assert.ok(original.txn.payment?.receiver.equals(receiver.addr));
-    assert.strictEqual(original.txn.payment?.amount, 1000n);
+    assert.strictEqual(original.txn.payment?.amount, BigInt(1000));
     assertSignedBy(original, account);
 
     assert.strictEqual(appCall.txn.applicationCall?.appIndex, BigInt(appID));
@@ -399,7 +399,7 @@ describe('AtomicTransactionComposer pre-sign modifiers', () => {
     assertSignedBy(appCall, appCaller);
 
     assert.ok(cleanup.txn.payment?.receiver.equals(account.addr));
-    assert.strictEqual(cleanup.txn.payment?.amount, 0n);
+    assert.strictEqual(cleanup.txn.payment?.amount, BigInt(0));
     assertSignedBy(cleanup, account);
 
     assert.ok(cleanup.txn.group && cleanup.txn.group.length > 0);
