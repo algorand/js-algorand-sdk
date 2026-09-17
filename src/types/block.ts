@@ -112,6 +112,10 @@ export class TxnCommitments implements Encodable {
         key: 'txn256', // sha256Commitment
         valueSchema: new FixedLengthByteArraySchema(32),
       },
+      {
+        key: 'txn512', // sha512Commitment
+        valueSchema: new FixedLengthByteArraySchema(64),
+      },
     ])
   );
 
@@ -126,12 +130,19 @@ export class TxnCommitments implements Encodable {
    */
   public sha256Commitment: Uint8Array;
 
+  /**
+   * Root of transaction vector commitment merkle tree using SHA512 hash function
+   */
+  public sha512Commitment: Uint8Array;
+
   constructor(params: {
     nativeSha512_256Commitment: Uint8Array;
     sha256Commitment: Uint8Array;
+    sha512Commitment?: Uint8Array;
   }) {
     this.nativeSha512_256Commitment = params.nativeSha512_256Commitment;
     this.sha256Commitment = params.sha256Commitment;
+    this.sha512Commitment = params.sha512Commitment ?? new Uint8Array(64);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -143,6 +154,7 @@ export class TxnCommitments implements Encodable {
     return new Map<string, unknown>([
       ['txn', this.nativeSha512_256Commitment],
       ['txn256', this.sha256Commitment],
+      ['txn512', this.sha512Commitment],
     ]);
   }
 
@@ -153,6 +165,7 @@ export class TxnCommitments implements Encodable {
     return new TxnCommitments({
       nativeSha512_256Commitment: data.get('txn'),
       sha256Commitment: data.get('txn256'),
+      sha512Commitment: data.get('txn512'),
     });
   }
 }
@@ -510,6 +523,10 @@ export class BlockHeader implements Encodable {
         valueSchema: new BlockHashSchema(),
       },
       {
+        key: 'prev512', // branch512
+        valueSchema: new FixedLengthByteArraySchema(64),
+      },
+      {
         key: 'seed', // seed
         valueSchema: new ByteArraySchema(),
       },
@@ -574,6 +591,14 @@ export class BlockHeader implements Encodable {
         valueSchema: ParticipationUpdates.encodingSchema,
         embedded: true,
       },
+      {
+        key: 'ld', // load
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'ct', // congestionTax
+        valueSchema: new Uint64Schema(),
+      },
     ])
   );
 
@@ -586,6 +611,11 @@ export class BlockHeader implements Encodable {
    * Previous block hash
    */
   public branch: Uint8Array;
+
+  /**
+   * Previous block hash, using SHA-512
+   */
+  public branch512: Uint8Array;
 
   /**
    * Sortition seed
@@ -655,9 +685,22 @@ export class BlockHeader implements Encodable {
 
   public participationUpdates: ParticipationUpdates;
 
+  /**
+   * Load is the degree to which a block is full. Currently, it is based on the number of bytes in
+   * the final block, compared to the maximum allowed. It is expressed as a fixed-point integer with
+   * 6 digits of precision. So, 1,000,000 is a completely full block.
+   */
+  public load: bigint;
+
+  /**
+   * CongestionTax is the fee required, beyond the MinFee, for "normal" transactions in this block.
+   */
+  public congestionTax: bigint;
+
   public constructor(params: {
     round: bigint;
     branch: Uint8Array;
+    branch512?: Uint8Array;
     seed: Uint8Array;
     txnCommitments: TxnCommitments;
     timestamp: bigint;
@@ -673,9 +716,12 @@ export class BlockHeader implements Encodable {
     txnCounter: bigint;
     stateproofTracking: Map<number, StateProofTrackingData>;
     participationUpdates: ParticipationUpdates;
+    load?: bigint;
+    congestionTax?: bigint;
   }) {
     this.round = params.round;
     this.branch = params.branch;
+    this.branch512 = params.branch512 ?? new Uint8Array(64);
     this.seed = params.seed;
     this.txnCommitments = params.txnCommitments;
     this.timestamp = params.timestamp;
@@ -691,6 +737,8 @@ export class BlockHeader implements Encodable {
     this.txnCounter = params.txnCounter;
     this.stateproofTracking = params.stateproofTracking;
     this.participationUpdates = params.participationUpdates;
+    this.load = params.load ?? BigInt(0);
+    this.congestionTax = params.congestionTax ?? BigInt(0);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -702,6 +750,7 @@ export class BlockHeader implements Encodable {
     const data = new Map<string, unknown>([
       ['rnd', this.round],
       ['prev', this.branch],
+      ['prev512', this.branch512],
       ['seed', this.seed],
       ['ts', this.timestamp],
       ['gen', this.genesisID],
@@ -711,6 +760,8 @@ export class BlockHeader implements Encodable {
       ['bi', this.bonus],
       ['pp', this.proposerPayout],
       ['tc', this.txnCounter],
+      ['ld', this.load],
+      ['ct', this.congestionTax],
       [
         'spt',
         convertMap(this.stateproofTracking, (key, value) => [
@@ -736,6 +787,7 @@ export class BlockHeader implements Encodable {
     return new BlockHeader({
       round: data.get('rnd'),
       branch: data.get('prev'),
+      branch512: data.get('prev512'),
       seed: data.get('seed'),
       txnCommitments: TxnCommitments.fromEncodingData(data),
       timestamp: data.get('ts'),
@@ -757,6 +809,8 @@ export class BlockHeader implements Encodable {
         ]
       ),
       participationUpdates: ParticipationUpdates.fromEncodingData(data),
+      load: data.get('ld'),
+      congestionTax: data.get('ct'),
     });
   }
 }
