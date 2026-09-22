@@ -2519,8 +2519,184 @@ describe('encoding', () => {
         ),
       });
       assert.deepStrictEqual(blockResponse, expectedBlockResponse);
+      assert.deepStrictEqual(
+        blockResponse.block.header.branch512,
+        new Uint8Array(64)
+      );
+      assert.deepStrictEqual(
+        blockResponse.block.header.txnCommitments.sha512Commitment,
+        new Uint8Array(64)
+      );
+      assert.strictEqual(blockResponse.block.header.load, BigInt(0));
+      assert.strictEqual(blockResponse.block.header.congestionTax, BigInt(0));
       const reencoded = algosdk.encodeMsgpack(blockResponse);
       assert.deepStrictEqual(reencoded, encodedBlockResponse);
+    });
+    it('should decode block header response correctly', () => {
+      const encodedBlockHeaderResponse = algosdk.base64ToBytes(
+        'gaVibG9ja94AF6Jiac4AfhAvpGVhcm7OAANUsKJmY82cQKRmZWVzxCDH/M2yWPDUGJwr+LbWjuaXUIZCsK0AHzH8uRjDVLqFmqRmcmFjzwAAAAGac9Yqo2dlbqxtYWlubmV0LXYxLjCiZ2jEIMBhxNj8Hb3e0tdgS+RWjj9tBBmHrDe95LYgtas5JIrfomxkzQpWonBwzgB+Xk+kcHJldsQgXUUbwgldVgcglZkZodMBpTCfHpJL18FdCy4ALIF1lgKncHJldjUxMsRAuuTitC0xtuWypJ0kvxP4FxIolB3A59tQNHuC9CuxUc+P6HJAUumOgt1GLf0GrDFGBRpRsNEQaShPW1q8Mry+kKVwcm90b9lZaHR0cHM6Ly9naXRodWIuY29tL2FsZ29yYW5kZm91bmRhdGlvbi9zcGVjcy90cmVlLzI2OGI2MzQzM2E5MDc0NTVkNDM5OTk1YmY5MTZmNmIyOTYwMThmNGajcHJwxCBWLf5PX9lAEmc8aq7lhIniE6SnuTvFMIkehI+1DZ6vNqNybmTOA+FmeaZyd2NhbHLOA+dzYKNyd2TEIP7/////////////////////////////////////////pHNlZWTEIGRK3yqUWQw+MX5vID+IFzA2cSbPVeqsYc2i4xi7jKPWo3NwdIEAgaFuzgPhZgCidGPO3RrFVKJ0c85qqr8+o3R4bsQgz6zbODmbQeWmRqrwZ4sI+GaQzkiLwobG6tPFCpg30Y+mdHhuMjU2xCB23qKZKm8QMUrTuOXDPz6dssM0jGYeqjQ3tmGjcBWxQqZ0eG41MTLEQA6eXWwVt9OxGC7RPhBc1pNCK19C8tMti2S2d9gALXlWcteahmLYR2llKEL2doPcX/oT3y+BEr41UDY+/K81V0k='
+      );
+      const blockHeaderResponse = algosdk.decodeMsgpack(
+        encodedBlockHeaderResponse,
+        algosdk.modelsv2.BlockResponse
+      );
+      const expectedBlockHeaderResponse = new algosdk.modelsv2.BlockResponse({
+        block: new algosdk.Block({
+          header: new algosdk.BlockHeader({
+            round: BigInt(65103481),
+            branch: algosdk.base64ToBytes(
+              'XUUbwgldVgcglZkZodMBpTCfHpJL18FdCy4ALIF1lgI='
+            ),
+            branch512: algosdk.base64ToBytes(
+              'uuTitC0xtuWypJ0kvxP4FxIolB3A59tQNHuC9CuxUc+P6HJAUumOgt1GLf0GrDFGBRpRsNEQaShPW1q8Mry+kA=='
+            ),
+            seed: algosdk.base64ToBytes(
+              'ZErfKpRZDD4xfm8gP4gXMDZxJs9V6qxhzaLjGLuMo9Y='
+            ),
+            txnCommitments: new algosdk.TxnCommitments({
+              nativeSha512_256Commitment: algosdk.base64ToBytes(
+                'z6zbODmbQeWmRqrwZ4sI+GaQzkiLwobG6tPFCpg30Y8='
+              ),
+              sha256Commitment: algosdk.base64ToBytes(
+                'dt6imSpvEDFK07jlwz8+nbLDNIxmHqo0N7Zho3AVsUI='
+              ),
+              sha512Commitment: algosdk.base64ToBytes(
+                'Dp5dbBW307EYLtE+EFzWk0IrX0Ly0y2LZLZ32AAteVZy15qGYthHaWUoQvZ2g9xf+hPfL4ESvjVQNj78rzVXSQ=='
+              ),
+            }),
+            timestamp: BigInt(1789574974),
+            genesisID: 'mainnet-v1.0',
+            genesisHash: algosdk.base64ToBytes(
+              'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8='
+            ),
+            proposer: algosdk.Address.fromString(
+              'KYW74T273FABEZZ4NKXOLBEJ4IJ2JJ5ZHPCTBCI6QSH3KDM6V43FWDZCW4'
+            ),
+            feesCollected: BigInt(40000),
+            bonus: BigInt(8261679),
+            proposerPayout: BigInt(8281679),
+            rewardState: new algosdk.RewardState({
+              feeSink: algosdk.Address.fromString(
+                'Y76M3MSY6DKBRHBL7C3NNDXGS5IIMQVQVUAB6MP4XEMMGVF2QWNPL226CA'
+              ),
+              rewardsPool: algosdk.Address.fromString(
+                '737777777777777777777777777777777777777777777777777UFEJ2CI'
+              ),
+              rewardsLevel: BigInt(218288),
+              rewardsRate: BigInt(0),
+              rewardsResidue: BigInt(6886250026),
+              rewardsRecalculationRound: BigInt(65500000),
+            }),
+            upgradeState: new algosdk.UpgradeState({
+              currentProtocol:
+                'https://github.com/algorandfoundation/specs/tree/268b63433a907455d439995bf916f6b296018f4f',
+              nextProtocol: '',
+              nextProtocolApprovals: BigInt(0),
+              nextProtocolVoteBefore: BigInt(0),
+              nextProtocolSwitchOn: BigInt(0),
+            }),
+            upgradeVote: new algosdk.UpgradeVote({
+              upgradePropose: '',
+              upgradeDelay: BigInt(0),
+              upgradeApprove: false,
+            }),
+            txnCounter: BigInt(3709519188),
+            stateproofTracking: new Map<number, algosdk.StateProofTrackingData>(
+              [
+                [
+                  0,
+                  new algosdk.StateProofTrackingData({
+                    stateProofVotersCommitment: new Uint8Array(),
+                    stateProofOnlineTotalWeight: BigInt(0),
+                    stateProofNextRound: BigInt(65103360),
+                  }),
+                ],
+              ]
+            ),
+            participationUpdates: new algosdk.ParticipationUpdates({
+              expiredParticipationAccounts: [],
+              absentParticipationAccounts: [],
+            }),
+            load: BigInt(2646),
+            congestionTax: BigInt(0),
+          }),
+          payset: [],
+        }),
+      });
+      assert.deepStrictEqual(blockHeaderResponse, expectedBlockHeaderResponse);
+      const reencoded = algosdk.encodeMsgpack(blockHeaderResponse);
+      assert.deepStrictEqual(reencoded, encodedBlockHeaderResponse);
+
+      const jsonBlockHeaderResponse =
+        '{\n  "block": {\n    "bi": 8261679,\n    "earn": 218288,\n    "fc": 40000,\n    "fees": "Y76M3MSY6DKBRHBL7C3NNDXGS5IIMQVQVUAB6MP4XEMMGVF2QWNPL226CA",\n    "frac": 6886250026,\n    "gen": "mainnet-v1.0",\n    "gh": "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",\n    "ld": 2646,\n    "pp": 8281679,\n    "prev": "blk-LVCRXQQJLVLAOIEVTEM2DUYBUUYJ6HUSJPL4CXILFYACZALVSYBA",\n    "prev512": "uuTitC0xtuWypJ0kvxP4FxIolB3A59tQNHuC9CuxUc+P6HJAUumOgt1GLf0GrDFGBRpRsNEQaShPW1q8Mry+kA==",\n    "proto": "https://github.com/algorandfoundation/specs/tree/268b63433a907455d439995bf916f6b296018f4f",\n    "prp": "KYW74T273FABEZZ4NKXOLBEJ4IJ2JJ5ZHPCTBCI6QSH3KDM6V43FWDZCW4",\n    "rnd": 65103481,\n    "rwcalr": 65500000,\n    "rwd": "737777777777777777777777777777777777777777777777777UFEJ2CI",\n    "seed": "ZErfKpRZDD4xfm8gP4gXMDZxJs9V6qxhzaLjGLuMo9Y=",\n    "spt": {\n      "0": {\n        "n": 65103360\n      }\n    },\n    "tc": 3709519188,\n    "ts": 1789574974,\n    "txn": "z6zbODmbQeWmRqrwZ4sI+GaQzkiLwobG6tPFCpg30Y8=",\n    "txn256": "dt6imSpvEDFK07jlwz8+nbLDNIxmHqo0N7Zho3AVsUI=",\n    "txn512": "Dp5dbBW307EYLtE+EFzWk0IrX0Ly0y2LZLZ32AAteVZy15qGYthHaWUoQvZ2g9xf+hPfL4ESvjVQNj78rzVXSQ=="\n  }\n}';
+      assert.deepStrictEqual(
+        algosdk.decodeJSON(
+          jsonBlockHeaderResponse,
+          algosdk.modelsv2.BlockResponse
+        ),
+        expectedBlockHeaderResponse
+      );
+    });
+    it('should encode and decode congestion tax correctly', () => {
+      // No network has produced a non-zero congestion tax yet, so there is no golden for ct.
+      const header = new algosdk.BlockHeader({
+        round: BigInt(1),
+        branch: new Uint8Array(32),
+        seed: new Uint8Array(),
+        txnCommitments: new algosdk.TxnCommitments({
+          nativeSha512_256Commitment: new Uint8Array(32),
+          sha256Commitment: new Uint8Array(32),
+        }),
+        timestamp: BigInt(0),
+        genesisID: '',
+        genesisHash: new Uint8Array(32),
+        proposer: algosdk.Address.zeroAddress(),
+        feesCollected: BigInt(0),
+        bonus: BigInt(0),
+        proposerPayout: BigInt(0),
+        rewardState: new algosdk.RewardState({
+          feeSink: algosdk.Address.zeroAddress(),
+          rewardsPool: algosdk.Address.zeroAddress(),
+          rewardsLevel: BigInt(0),
+          rewardsRate: BigInt(0),
+          rewardsResidue: BigInt(0),
+          rewardsRecalculationRound: BigInt(0),
+        }),
+        upgradeState: new algosdk.UpgradeState({
+          currentProtocol: '',
+          nextProtocol: '',
+          nextProtocolApprovals: BigInt(0),
+          nextProtocolVoteBefore: BigInt(0),
+          nextProtocolSwitchOn: BigInt(0),
+        }),
+        upgradeVote: new algosdk.UpgradeVote({
+          upgradePropose: '',
+          upgradeDelay: BigInt(0),
+          upgradeApprove: false,
+        }),
+        txnCounter: BigInt(0),
+        stateproofTracking: new Map<number, algosdk.StateProofTrackingData>(),
+        participationUpdates: new algosdk.ParticipationUpdates({
+          expiredParticipationAccounts: [],
+          absentParticipationAccounts: [],
+        }),
+        congestionTax: BigInt(1234),
+      });
+      const encoded = algosdk.encodeMsgpack(header);
+      assert.deepStrictEqual(algosdk.msgpackRawDecode(encoded), {
+        ct: BigInt(1234),
+        rnd: BigInt(1),
+      });
+      assert.deepStrictEqual(
+        algosdk.decodeMsgpack(encoded, algosdk.BlockHeader),
+        header
+      );
+      const encodedJSON = algosdk.encodeJSON(header);
+      assert.deepStrictEqual(JSON.parse(encodedJSON), { ct: 1234, rnd: 1 });
+      assert.deepStrictEqual(
+        algosdk.decodeJSON(encodedJSON, algosdk.BlockHeader),
+        header
+      );
     });
     it('should decode ApplyData correctly', () => {
       const encodedApplyData = algosdk.base64ToBytes(
