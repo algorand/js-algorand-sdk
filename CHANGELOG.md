@@ -1,3 +1,23 @@
+# v3.8.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.8.0 -->
+
+## What's Changed
+
+### New Features
+
+- feat: support prev512, txn512, ld and ct block header fields by @mrcointreau in https://github.com/algorand/js-algorand-sdk/pull/1140
+
+### Enhancements
+
+- docs: add missing TSDoc comments to new v42 functions/types by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1134
+
+## New Contributors
+
+- @mrcointreau made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/1140
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.7.0...v3.8.0
+
 # v3.7.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.7.0 -->
