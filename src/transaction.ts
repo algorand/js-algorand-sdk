@@ -1102,6 +1102,18 @@ export class Transaction implements encoding.Encodable {
         voteKeyDilution: data.get('votekd'),
         nonParticipation: data.get('nonpart'),
       };
+      // Protocol/goal omitempty drops votefst=0. Restore 0 so online keyreg decode
+      // does not treat the omitted field as missing.
+      const looksOnline =
+        keyregParams.nonParticipation !== true &&
+        (keyregParams.voteKey ||
+          keyregParams.selectionKey ||
+          keyregParams.stateProofKey ||
+          typeof keyregParams.voteLast !== 'undefined' ||
+          typeof keyregParams.voteKeyDilution !== 'undefined');
+      if (looksOnline && typeof keyregParams.voteFirst === 'undefined') {
+        keyregParams.voteFirst = 0n;
+      }
       params.keyregParams = keyregParams;
     } else if (params.type === TransactionType.acfg) {
       const assetConfigParams: AssetConfigurationTransactionParams = {
