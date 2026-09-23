@@ -75,6 +75,9 @@ export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;
 export type ABIReturnType = ABIType | 'void';
 
 export class ABIMethod {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIMethod';
+
   public readonly name: string;
   public readonly description?: string;
   public readonly args: Array<{
@@ -86,6 +89,15 @@ export class ABIMethod {
   public readonly returns: { type: ABIReturnType; description?: string };
   public readonly events?: ARC28Event[];
   public readonly readonly?: boolean;
+
+  /** Check if a value is an ABIMethod, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIMethod {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIMethod).tag === 'algosdk.ABIMethod'
+    );
+  }
 
   constructor(params: ABIMethodParams) {
     if (
@@ -179,7 +191,7 @@ export function getMethodByName(methods: ABIMethod[], name: string): ABIMethod {
   if (
     methods === null ||
     !Array.isArray(methods) ||
-    !methods.every((item) => item instanceof ABIMethod)
+    !methods.every((item) => ABIMethod.isInstance(item))
   )
     throw new Error('Methods list provided is null or not the correct type');
 
