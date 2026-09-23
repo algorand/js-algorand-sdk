@@ -56,4 +56,21 @@ describe('#mnemonic', () => {
       passphrase.seedFromMnemonic(mn);
     }, new Error(passphrase.NOT_IN_WORDS_LIST_ERROR_MSG));
   });
+
+  it('should explain a 24-word BIP-39 mnemonic is the wrong format', () => {
+    const words = new Array(24).fill('abandon').join(' ');
+    assert.throws(() => {
+      passphrase.seedFromMnemonic(words);
+    }, new Error(passphrase.invalidMnemonicWordCountErrorMsg(24)));
+    assert.throws(() => {
+      algosdk.mnemonicToSecretKey(words);
+    }, new Error(passphrase.invalidMnemonicWordCountErrorMsg(24)));
+  });
+
+  it('should reject a mnemonic with an unexpected word count', () => {
+    const words = new Array(26).fill('abandon').join(' ');
+    assert.throws(() => {
+      passphrase.seedFromMnemonic(words);
+    }, new Error(passphrase.invalidMnemonicWordCountErrorMsg(26)));
+  });
 });
