@@ -9,6 +9,13 @@ export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =
   'the mnemonic contains a word that is not in the wordlist';
 
+export function invalidMnemonicWordCountErrorMsg(wordCount: number): string {
+  return (
+    `invalid mnemonic: expected 25 Algorand words, got ${wordCount}. ` +
+    'A 24-word BIP-39 phrase (for example from a Pera Universal Wallet) is not compatible with algosdk.'
+  );
+}
+
 // https://stackoverflow.com/a/51452614
 function toUint11Array(buffer8: Uint8Array | number[]): number[] {
   const buffer11: number[] = [];
@@ -100,6 +107,9 @@ function toUint8Array(buffer11: number[]): Uint8Array {
  */
 export function seedFromMnemonic(mnemonic: string) {
   const words = mnemonic.split(' ');
+  if (words.length !== 25) {
+    throw new Error(invalidMnemonicWordCountErrorMsg(words.length));
+  }
   const key = words.slice(0, 24);
 
   // Check that all words are in list
