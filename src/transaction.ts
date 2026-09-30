@@ -82,7 +82,7 @@ function ensureAddress(input: unknown): Address {
   if (typeof input === 'string') {
     return Address.fromString(input);
   }
-  if (input instanceof Address) {
+  if (Address.isAddress(input)) {
     return input;
   }
   throw new Error(`Not an address: ${input}`);
@@ -93,7 +93,7 @@ function optionalAddress(input: unknown): Address | undefined {
     return undefined;
   }
   let addr: Address;
-  if (input instanceof Address) {
+  if (Address.isAddress(input)) {
     addr = input;
   } else if (typeof input === 'string') {
     addr = Address.fromString(input);

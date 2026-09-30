@@ -57,12 +57,24 @@ export function allOmitEmpty(
  * Schema for a map/struct with a fixed set of known string fields.
  */
 export class NamedMapSchema extends Schema {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.NamedMapSchema';
+
   private readonly entries: NamedMapEntry[];
 
   constructor(entries: NamedMapEntry[]) {
     super();
     this.entries = entries;
     this.checkEntries();
+  }
+
+  /** Check if a value is a NamedMapSchema, even across different SDK versions. */
+  static isInstance(value: unknown): value is NamedMapSchema {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as NamedMapSchema).tag === 'algosdk.NamedMapSchema'
+    );
   }
 
   /**
@@ -82,7 +94,7 @@ export class NamedMapSchema extends Schema {
         if (entry.key !== '') {
           throw new Error('Embedded entries must have an empty key');
         }
-        if (!(entry.valueSchema instanceof NamedMapSchema)) {
+        if (!NamedMapSchema.isInstance(entry.valueSchema)) {
           throw new Error(
             'Embedded entry valueSchema must be a NamedMapSchema'
           );
