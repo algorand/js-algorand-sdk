@@ -1478,6 +1478,27 @@ describe('encoding', () => {
         });
       }
     });
+    describe('ByteArraySchema', () => {
+      it('decodes msgpack/JSON null as an empty byte array', () => {
+        const schema = new ByteArraySchema();
+        const rawStringProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: new Uint8Array(),
+        });
+        assert.deepStrictEqual(
+          schema.fromPreparedMsgpack(null, rawStringProvider),
+          new Uint8Array()
+        );
+        assert.deepStrictEqual(
+          schema.fromPreparedMsgpack(undefined, rawStringProvider),
+          new Uint8Array()
+        );
+        assert.deepStrictEqual(schema.fromPreparedJSON(null), new Uint8Array());
+        assert.deepStrictEqual(
+          schema.fromPreparedJSON(undefined),
+          new Uint8Array()
+        );
+      });
+    });
     describe('NamedMapSchema', () => {
       it('correctly handles omitEmpty', () => {
         const testValues: Array<{
