@@ -441,6 +441,45 @@ describe('ABI encoding', () => {
     });
   });
 
+  it('should decode dynamic types from a non-zero byteOffset subarray view', () => {
+    // Regression test: decode() must honor the input Uint8Array's byteOffset.
+    // Simulate/confirmation logs and other API responses arrive as subarray
+    // views into a larger buffer (non-zero byteOffset). ABITupleType.decode and
+    // ABIArrayDynamicType.decode read dynamic head offsets via DataView.getUint16;
+    // if the DataView ignores byteOffset it reads from the wrong position and
+    // throws "dynamic index segment miscalculation: left is greater than right
+    // index" (or returns garbage).
+    const cases: Array<{ type: ABIType; value: ABIValue }> = [
+      { type: ABIType.from('(string,uint16)'), value: ['hello', BigInt(7)] },
+      {
+        type: ABIType.from('uint16[]'),
+        value: [BigInt(1), BigInt(2), BigInt(3)],
+      },
+      {
+        type: ABIType.from('(string,bool,bool,bool,bool,string)'),
+        value: ['AB', true, false, true, false, 'DE'],
+      },
+      { type: ABIType.from('string'), value: 'a longer string value' },
+    ];
+
+    for (const { type, value } of cases) {
+      const encoded = type.encode(value);
+      // Place the encoding at a non-zero offset inside a larger backing buffer.
+      const offset = 5;
+      const backing = new Uint8Array(offset + encoded.length + 3);
+      backing.set(encoded, offset);
+      const view = backing.subarray(offset, offset + encoded.length);
+      assert.notStrictEqual(view.byteOffset, 0);
+
+      const decoded = type.decode(view);
+      assert.deepStrictEqual(
+        decoded,
+        value,
+        `failed to decode ${type} from offset view`
+      );
+    }
+  });
+
   it('should fail for bad values during encoding', () => {
     assert.throws(() => new ABIUintType(8).encode(BigInt(-1)));
     assert.throws(() => new ABIUintType(512).encode(BigInt(2 ** 512)));

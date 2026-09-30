@@ -32,13 +32,7 @@ const staticArrayRegexp = /^([a-z\d[\](),]+)\[(0|[1-9][\d]*)]$/;
 const ufixedRegexp = /^ufixed([1-9][\d]*)x([1-9][\d]*)$/;
 
 export type ABIValue =
-  | boolean
-  | number
-  | bigint
-  | string
-  | Uint8Array
-  | ABIValue[]
-  | Address;
+  boolean | number | bigint | string | Uint8Array | ABIValue[] | Address;
 
 export abstract class ABIType {
   // Converts a ABIType object to a string
@@ -532,7 +526,14 @@ export class ABIArrayDynamicType extends ABIType {
   }
 
   decode(byteString: Uint8Array): ABIValue[] {
-    const view = new DataView(byteString.buffer, 0, LENGTH_ENCODE_BYTE_SIZE);
+    // Account for byteString's byteOffset: it may be a subarray view into a
+    // larger buffer (e.g. simulate/confirmation logs), in which case
+    // byteString.buffer is the whole backing buffer and byteOffset is non-zero.
+    const view = new DataView(
+      byteString.buffer,
+      byteString.byteOffset,
+      LENGTH_ENCODE_BYTE_SIZE
+    );
     const byteLength = view.getUint16(0);
     const convertedTuple = this.toABITupleType(byteLength);
     return convertedTuple.decode(
@@ -675,7 +676,16 @@ export class ABITupleType extends ABIType {
     const valuePartition: Array<Uint8Array | null> = [];
     let i = 0;
     let iterIndex = 0;
-    const view = new DataView(byteString.buffer);
+    // Account for byteString's byteOffset: it may be a subarray view into a
+    // larger buffer (e.g. simulate/confirmation logs), in which case
+    // byteString.buffer is the whole backing buffer and byteOffset is non-zero.
+    // getUint16 below is called with iterIndex, an offset relative to the start
+    // of byteString, so the view must begin at byteString.byteOffset.
+    const view = new DataView(
+      byteString.buffer,
+      byteString.byteOffset,
+      byteString.byteLength
+    );
 
     while (i < tupleTypes.length) {
       const tupleType = tupleTypes[i];
