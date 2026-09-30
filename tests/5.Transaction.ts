@@ -698,6 +698,78 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should decode an online keyreg with voteFirst 0 after msgpack encode omits votefst', () => {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        keyregParams: {
+          voteKey: algosdk.base64ToBytes(
+            '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+          ),
+          selectionKey: algosdk.base64ToBytes(
+            'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+          ),
+          stateProofKey: algosdk.base64ToBytes(
+            'mgh7ddGf7dF1Z5/9RDzN/JZZF9yA7XYCKJXvqhwPdvI7pLKh7hizaM5rTC2kizVOpVRIU9PXSLeapvBJ/OxQYA=='
+          ),
+          voteFirst: 0,
+          voteLast: 456,
+          voteKeyDilution: 1234,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encTxn = algosdk.encodeMsgpack(expectedTxn);
+      const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
+      assert.strictEqual(decTxn.keyreg?.voteFirst, 0n);
+      assert.deepStrictEqual(decTxn, expectedTxn);
+    });
+
+    it('should decode an online keyreg whose wire encoding omitted votefst', () => {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        keyregParams: {
+          voteKey: algosdk.base64ToBytes(
+            '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+          ),
+          selectionKey: algosdk.base64ToBytes(
+            'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+          ),
+          stateProofKey: algosdk.base64ToBytes(
+            'mgh7ddGf7dF1Z5/9RDzN/JZZF9yA7XYCKJXvqhwPdvI7pLKh7hizaM5rTC2kizVOpVRIU9PXSLeapvBJ/OxQYA=='
+          ),
+          voteFirst: 123,
+          voteLast: 456,
+          voteKeyDilution: 1234,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encodingData = txn.toEncodingData();
+      encodingData.delete('votefst');
+      const decTxn = algosdk.Transaction.fromEncodingData(encodingData);
+      assert.strictEqual(decTxn.keyreg?.voteFirst, 0n);
+    });
+
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation', () => {
       const expectedTxn = new algosdk.Transaction({
         type: algosdk.TransactionType.keyreg,
@@ -717,6 +789,7 @@ describe('Sign', () => {
       });
       const encTxn = algosdk.encodeMsgpack(expectedTxn);
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
+      assert.strictEqual(decTxn.keyreg?.voteFirst, undefined);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
       const encRep = expectedTxn.toEncodingData();
