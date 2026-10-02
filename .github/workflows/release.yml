@@ -105,7 +105,7 @@ jobs:
       # again, so that `main` has the updated README and the new tag in its history.
       - name: Merge release -> main
         if: github.ref_name == 'release'
-        uses: devmasx/merge-branch@854d3ac71ed1e9deb668e0074781b81fdd6e771f # v1.4.0
+        uses: devmasx/merge-branch@6ec8363d74aad4f1615d1234ae1908b4185c4313 # master (2023-03-17): the latest tag, v1.4.0, has no message input
         with:
           type: now
           from_branch: release
