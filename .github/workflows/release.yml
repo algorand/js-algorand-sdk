@@ -33,9 +33,14 @@ jobs:
       install-algokit: false
       polytest: false
 
+  check_docs:
+    uses: ./.github/workflows/check-docs.yml
+
   build:
     name: Build
-    needs: ci
+    needs:
+      - ci
+      - check_docs
     uses: algorandfoundation/algokit-shared-config/.github/workflows/node-build-zip.yml@main
     with:
       build-path: dist
@@ -112,3 +117,13 @@ jobs:
           target_branch: main
           message: Merge release back to main to get README update [no ci]
           github_token: ${{ steps.app_token.outputs.token }}
+
+  publish_docs:
+    name: Publish docs to GitHub Pages
+    needs: release
+    if: github.ref_name == 'release'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/publish-docs.yml
