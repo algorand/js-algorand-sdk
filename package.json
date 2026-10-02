@@ -58,14 +58,21 @@
     "vlq": "^2.0.4"
   },
   "devDependencies": {
+    "@algorandfoundation/falcon-wasm": "1.0.0",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
     "@types/json-bigint": "^1.0.0",
     "@types/mocha": "^8.2.2",
     "@types/node": "^20.11.5",
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
     "assert": "^2.0.0",
+    "better-npm-audit": "^3.11.0",
     "chromedriver": "^136.0.3",
     "concurrently": "^6.2.0",
+    "conventional-changelog-conventionalcommits": "8.0.0",
     "cucumber": "^5.1.0",
     "es-abstract": "^1.18.3",
     "eslint": "8.22.0",
@@ -75,7 +82,6 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-tsdoc": "^0.2.11",
     "express": "^4.19.2",
-    "@algorandfoundation/falcon-wasm": "1.0.0",
     "geckodriver": "^4.3.0",
     "husky": "^4.3.8",
     "lint-staged": "^10.5.4",
@@ -83,6 +89,7 @@
     "mock-http-server": "^1.4.3",
     "prettier": "^3.2.1",
     "selenium-webdriver": "^4.10.0",
+    "semantic-release": "^25.0.9",
     "source-map-loader": "^2.0.2",
     "ts-loader": "^9.3.1",
     "tsx": "^4.7.0",
@@ -103,7 +110,105 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check-types": "tsc --noEmit",
+    "audit": "better-npm-audit audit -p",
+    "commit-lint": "commitlint --edit -o",
+    "semantic-release": "semantic-release",
     "example": "ts-node"
+  },
+  "release": {
+    "branches": [
+      {
+        "name": "main",
+        "prerelease": "beta",
+        "channel": "beta"
+      },
+      {
+        "name": "release"
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "build",
+              "release": "patch"
+            },
+            {
+              "type": "chore",
+              "release": "patch"
+            },
+            {
+              "type": "refactor",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "build",
+                "section": "Dependencies and Other Build Updates",
+                "hidden": false
+              },
+              {
+                "type": "refactor",
+                "section": "Code Refactoring"
+              }
+            ]
+          }
+        }
+      ],
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false
+        }
+      ],
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "node scripts/ci/update-readme-sri.js ${nextRelease.version}"
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "README.md"
+          ],
+          "message": "chore(release): update README to v${nextRelease.version} [skip ci]"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist/browser/algosdk.min.js",
+              "label": "Minified browser bundle (algosdk.min.js)"
+            }
+          ]
+        }
+      ]
+    ]
   },
   "author": "Algorand, llc",
   "license": "MIT",
