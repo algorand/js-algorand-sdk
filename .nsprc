@@ -1,1 +1,52 @@
-{}
+{
+  "1239934": {
+    "active": true,
+    "notes": "undici bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240039": {
+    "active": true,
+    "notes": "undici bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240042": {
+    "active": true,
+    "notes": "undici bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1239948": {
+    "active": true,
+    "notes": "ip-address bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1239949": {
+    "active": true,
+    "notes": "ip-address bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240097": {
+    "active": true,
+    "notes": "ip-address bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240098": {
+    "active": true,
+    "notes": "ip-address bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240103": {
+    "active": true,
+    "notes": "brace-expansion bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240107": {
+    "active": true,
+    "notes": "brace-expansion bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  },
+  "1240111": {
+    "active": true,
+    "notes": "brace-expansion bundled in npm@11 (node_modules/npm), used only by @semantic-release/npm at release time; not shipped in algosdk. No fixed npm@11 yet (latest 11.20.0).",
+    "expiry": "2026-12-31"
+  }
+}

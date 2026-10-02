@@ -24,7 +24,7 @@ jobs:
       audit-script: ${{ matrix.browser == 'node' && 'npm run audit' || 'true' }}
       lint-script: npm run lint && npm run format:check
       compile-script: npm run check-types
-      # `prepare` builds dist/ during install; type-check a consumer file against it
+      # node-ci runs `prepare` (the build) after the install; type-check a consumer file against dist/
       pre-test-script: npx tsc -p tests/compile
       # The chromedriver swap is part of test-script because only the Test step gets
       # test-environment-variables. `make ci-test` starts the algorand-sdk-testing harness.
@@ -88,7 +88,8 @@ jobs:
       # NPM_CONFIG_IGNORE_SCRIPTS: `npm publish` must not run `prepare` (a rebuild),
       # so the tested dist/ from the build job is the one that is published.
       # GIT_AUTHOR_* / GIT_COMMITTER_*: identity of the README release commit made by
-      # @semantic-release/git (it ignores git config and defaults to semantic-release-bot).
+      # @semantic-release/git. In CI, semantic-release sets these variables to
+      # semantic-release-bot unless they are set, and they override git config.
       - name: 'Semantic release'
         run: npx semantic-release
         env:

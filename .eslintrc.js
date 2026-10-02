@@ -36,7 +36,8 @@ module.exports = {
       { exceptAfterSingleLine: true },
     ],
     'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error'],
+    // caughtErrors: 'none' keeps the typescript-eslint v6 default (v8 changed it to 'all')
+    '@typescript-eslint/no-unused-vars': ['error', { caughtErrors: 'none' }],
     'no-redeclare': 'off',
     '@typescript-eslint/no-redeclare': ['error'],
     'no-shadow': 'off',
