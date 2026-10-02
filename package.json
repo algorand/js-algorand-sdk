@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/algorand/js-algorand-sdk.git"
+    "url": "git+https://github.com/algorand/js-algorand-sdk.git"
   },
   "dependencies": {
     "algorand-msgpack": "^1.1.0",
@@ -181,12 +181,7 @@
           }
         }
       ],
-      [
-        "@semantic-release/npm",
-        {
-          "npmPublish": false
-        }
-      ],
+      "@semantic-release/npm",
       [
         "@semantic-release/exec",
         {
@@ -218,6 +213,6 @@
   "author": "Algorand, llc",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0"
   }
 }
