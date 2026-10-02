@@ -47,6 +47,9 @@
     "type": "git",
     "url": "git+https://github.com/algorand/js-algorand-sdk.git"
   },
+  "overrides": {
+    "basic-ftp": ">=6.2.1"
+  },
   "dependencies": {
     "algorand-msgpack": "^1.1.0",
     "hi-base32": "^0.5.1",
