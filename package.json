@@ -157,6 +157,11 @@
             "types": [
               {
                 "type": "feat",
+                "scope": "nye",
+                "section": "Not Yet Enabled"
+              },
+              {
+                "type": "feat",
                 "section": "Features"
               },
               {
