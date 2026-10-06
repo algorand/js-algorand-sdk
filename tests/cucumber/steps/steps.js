@@ -5498,17 +5498,9 @@ module.exports = function getSteps(options) {
 
       const failedMessage =
         this.simulateResponse.txnGroups[groupNum].failureMessage;
-      // go-algorand #6728 rejects a group that repeats a transaction during group
-      // verification ("duplicate transaction: [1] repeats [0]") instead of with
-      // "transaction already in ledger". Accept both until algorand-sdk-testing
-      // updates simulate.feature.
-      const acceptedMessages =
-        errorMsg === 'transaction already in ledger'
-          ? [errorMsg, 'duplicate transaction']
-          : [errorMsg];
       assert.ok(
-        acceptedMessages.some((msg) => failedMessage.includes(msg)),
-        `Error message: "${failedMessage}" does not contain "${acceptedMessages.join('" or "')}"`
+        failedMessage.includes(errorMsg),
+        `Error message: "${failedMessage}" does not contain "${errorMsg}"`
       );
 
       // Check path array
