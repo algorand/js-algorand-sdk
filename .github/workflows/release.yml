@@ -1,194 +1,129 @@
-name: "Create and Publish Release"
+name: Publish
 
 on:
+  push:
+    branches:
+      - main
+      - release
   workflow_dispatch:
-    inputs:
-      release_pr_number:
-        description: "The pull request number to merge that contains the package version bumps and changelog updates."
-        required: true
-        type: number
-      release_version:
-        description: "The tag name for the release (e.g., v1.2.3). Use vX.Y.Z-beta.N to publish a pre-release under the npm 'beta' dist-tag."
-        required: true
-        type: string
-      dry_run:
-        description: "Set to true to 'dry-run'/not actually publish to NPM."
-        default: "false"
-        required: true
-        type: boolean
-      node_version:
-        description: "The Node.js version to use for publishing"
-        required: true
-        type: string
-        default: "24"
+
+concurrency: release
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
-  release_and_publish:
-    runs-on: ubuntu-24.04
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [node, chrome, firefox]
+    uses: algorandfoundation/algokit-shared-config/.github/workflows/node-ci.yml@main
+    with:
+      run-commit-lint: ${{ matrix.browser == 'node' }}
+      audit-script: ${{ matrix.browser == 'node' && 'npm run audit' || 'true' }}
+      lint-script: npm run lint && npm run format:check
+      compile-script: npm run check-types
+      # node-ci runs `prepare` (the build) after the install; type-check a consumer file against dist/
+      pre-test-script: npx tsc -p tests/compile
+      # The chromedriver swap is part of test-script because only the Test step gets
+      # test-environment-variables. `make ci-test` starts the algorand-sdk-testing harness.
+      test-script: ${{ matrix.browser == 'chrome' && 'bash scripts/ci/match-chromedriver.sh && ' || '' }}npm test && make ci-test
+      test-environment-variables: ${{ matrix.browser == 'node' && '{}' || format('{{"TEST_BROWSER":"{0}"}}', matrix.browser) }}
+      install-algokit: false
+      polytest: false
+
+  check_docs:
+    uses: ./.github/workflows/check-docs.yml
+
+  build:
+    name: Build
+    needs:
+      - ci
+      - check_docs
+    uses: algorandfoundation/algokit-shared-config/.github/workflows/node-build-zip.yml@main
+    with:
+      build-path: dist
+      artifact-name: package
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
     permissions:
-      contents: write # Needed for creating releases and tags, and deleting branches
-      pull-requests: write # Needed for merging the PR
+      id-token: write
     steps:
-      - name: Determine Release Type
-        id: release_type
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      - name: Generate bot token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        id: app_token
+        with:
+          app-id: ${{ secrets.BOT_ID }}
+          private-key: ${{ secrets.BOT_SK }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app_token.outputs.token }}
+
+      - name: Set Git user as GitHub actions
+        run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 24.x
+
+      - name: Download built package
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: package
+          path: artifacts
+
+      # -o: dist/esm/package.json is tracked in git, and unzip without -o exits 1 on it
+      - name: Unzip package
+        shell: bash
         run: |
-          if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "is-beta=false" >> $GITHUB_OUTPUT
-            echo "npm-tag=latest" >> $GITHUB_OUTPUT
-          elif [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
-            echo "is-beta=true" >> $GITHUB_OUTPUT
-            echo "npm-tag=beta" >> $GITHUB_OUTPUT
-          else
-            echo "release_version doesn't match ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$"
-            exit 1
-          fi
+          mkdir -p dist
+          unzip -o -q "artifacts/package.zip" -d dist
 
-      - name: Get Pull Request Info (Base Branch, Release Notes)
-        id: get_pr_info
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
-            const result = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
+      - name: Install dependencies to get semantic release components and plugins
+        run: npm ci --ignore-scripts
 
-            core.setOutput('RELEASE_NOTES', result.data.body);
-            core.setOutput('RELEASE_TAG', process.env.RELEASE_VERSION);
-            core.setOutput('BASE_BRANCH', result.data.base.ref);  // Capture base branch
+      # NPM_CONFIG_IGNORE_SCRIPTS: `npm publish` must not run `prepare` (a rebuild),
+      # so the tested dist/ from the build job is the one that is published.
+      # GIT_AUTHOR_* / GIT_COMMITTER_*: identity of the README release commit made by
+      # @semantic-release/git. In CI, semantic-release sets these variables to
+      # semantic-release-bot unless they are set, and they override git config.
+      - name: 'Semantic release'
+        run: npx semantic-release
         env:
-          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          NPM_CONFIG_IGNORE_SCRIPTS: 'true'
+          GIT_AUTHOR_NAME: engineering-ci[bot]
+          GIT_AUTHOR_EMAIL: 179917785+engineering-ci[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: engineering-ci[bot]
+          GIT_COMMITTER_EMAIL: 179917785+engineering-ci[bot]@users.noreply.github.com
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # A stable release adds the README release commit (and the tag on it) to `release`
+      # after prod_release.yml has already merged `release` back to `main`. Merge it back
+      # again, so that `main` has the updated README and the new tag in its history.
+      - name: Merge release -> main
+        if: github.ref_name == 'release'
+        uses: devmasx/merge-branch@6ec8363d74aad4f1615d1234ae1908b4185c4313 # master (2023-03-17): the latest tag, v1.4.0, has no message input
         with:
-          ref: ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
-          fetch-depth: 0 
+          type: now
+          from_branch: release
+          target_branch: main
+          message: Merge release back to main to get README update [no ci]
+          github_token: ${{ steps.app_token.outputs.token }}
 
-      - name: Set up Git
-        run: |
-          git config --local user.name "GitHub Actions"
-          git config --local user.email "actions@github.com"
-
-      - name: Merge Pull Request
-        uses: actions/github-script@v9
-        id: merge_pr
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = parseInt('${{ github.event.inputs.release_pr_number }}', 10);
-            const result = await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-
-            core.setOutput('merged', result.data.merged);
-
-      - name: Ensure latest changes from merged PR
-        run: |
-          git fetch origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
-          git reset --hard origin/${{ steps.get_pr_info.outputs.BASE_BRANCH }}
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.release_version }}
-          name: ${{ github.event.inputs.release_version }}
-          body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
-          generate_release_notes: false
-          prerelease: ${{ steps.release_type.outputs['is-beta'] == 'true' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ github.event.inputs.node_version }}
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Publish release to NPM
-        env:
-          NPM_TAG: ${{ steps.release_type.outputs['npm-tag'] }}
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-        run: |
-          # Ensure we're on the latest version of the branch
-          git checkout ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
-          git pull origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
-
-          # A mismatch here would publish a beta under the 'latest' tag, or vice versa
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          if [[ "$PACKAGE_VERSION" != "${RELEASE_VERSION#v}" ]]; then
-            echo "package.json version ($PACKAGE_VERSION) doesn't match release_version ($RELEASE_VERSION). Aborting."
-            exit 1
-          fi
-
-          if git diff-index --quiet HEAD --; then
-            if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
-              echo "Publishing to NPM under the '$NPM_TAG' tag"
-              npm ci
-              npm run build
-              npm publish --tag "$NPM_TAG"
-            else
-              echo "Dry run: Skipping actual publish (would use the '$NPM_TAG' tag)"
-              npm ci
-              npm run build
-              npm publish --dry-run --tag "$NPM_TAG"
-            fi
-          else
-            echo "There are unpublished changes. Aborting."
-            exit 1
-          fi
-
-      - name: Delete branch after merge
-        if: steps.merge_pr.outputs.merged == 'true' # Only delete if merge was successful
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const branchName = `release/${{ github.event.inputs.release_version }}`;
-      
-            try {
-              await github.rest.git.deleteRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `heads/${branchName}`,
-              });
-              console.log(`Successfully deleted branch: ${branchName}`);
-            } catch (error) {
-              console.error(`Failed to delete branch ${branchName}:`, error);
-            }
-
-      - name: Notify Slack - Release Completed
-        id: slack-release
-        uses: slackapi/slack-github-action@v1.27.1
-        env:
-          SDK: ${{ github.event.repository.name }}
-          RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
-          RELEASE_KIND: ${{ steps.release_type.outputs['is-beta'] == 'true' && 'beta released' || 'released' }}
-          NPM_NOTE: ${{ steps.release_type.outputs['is-beta'] == 'true' && ' Install it with `npm install algosdk@beta`.' || '' }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-        with:
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was ${{ env.RELEASE_KIND }} today. https://github.com/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}${{ env.NPM_NOTE }}"
-                  }
-                }
-              ]
-            }
+  publish_docs:
+    name: Publish docs to GitHub Pages
+    needs: release
+    if: github.ref_name == 'release'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/publish-docs.yml

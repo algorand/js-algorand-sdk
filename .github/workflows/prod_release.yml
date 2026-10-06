@@ -1,0 +1,44 @@
+name: Prod Publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prod_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate bot token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        id: app_token
+        with:
+          app-id: ${{ secrets.BOT_ID }}
+          private-key: ${{ secrets.BOT_SK }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app_token.outputs.token }}
+
+      - name: Set Git user as GitHub actions
+        run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
+
+      - name: Merge main -> release
+        uses: devmasx/merge-branch@854d3ac71ed1e9deb668e0074781b81fdd6e771f # v1.4.0
+        with:
+          type: now
+          from_branch: main
+          target_branch: release
+          github_token: ${{ steps.app_token.outputs.token }}
+
+      - name: Merge release -> main
+        uses: devmasx/merge-branch@6ec8363d74aad4f1615d1234ae1908b4185c4313 # master (2023-03-17): the latest tag, v1.4.0, has no message input
+        with:
+          type: now
+          from_branch: release
+          target_branch: main
+          message: Merge release back to main to get version increment [no ci]
+          github_token: ${{ steps.app_token.outputs.token }}
