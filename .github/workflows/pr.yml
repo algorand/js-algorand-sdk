@@ -1,0 +1,36 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [node, chrome, firefox]
+    uses: algorandfoundation/algokit-shared-config/.github/workflows/node-ci.yml@main
+    with:
+      run-commit-lint: ${{ matrix.browser == 'node' }}
+      audit-script: ${{ matrix.browser == 'node' && 'npm run audit' || 'true' }}
+      lint-script: npm run lint && npm run format:check
+      compile-script: npm run check-types
+      # node-ci runs `prepare` (the build) after the install; type-check a consumer file against dist/
+      pre-test-script: npx tsc -p tests/compile
+      # The chromedriver swap is part of test-script because only the Test step gets
+      # test-environment-variables. `make ci-test` starts the algorand-sdk-testing harness.
+      test-script: ${{ matrix.browser == 'chrome' && 'bash scripts/ci/match-chromedriver.sh && ' || '' }}npm test && make ci-test
+      test-environment-variables: ${{ matrix.browser == 'node' && '{}' || format('{{"TEST_BROWSER":"{0}"}}', matrix.browser) }}
+      install-algokit: false
+      polytest: false
+
+  check-docs:
+    uses: ./.github/workflows/check-docs.yml
