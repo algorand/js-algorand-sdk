@@ -67,6 +67,7 @@ export {
 } from './encoding/binarydata.js';
 export { encodeUint64, decodeUint64 } from './encoding/uint64.js';
 export { parseJSON, ParseJSONOptions, stringifyJSON } from './utils/utils.js';
+export { couldBeCurvePoint } from './utils/ed25519-check.js';
 export { default as generateAccount } from './account.js';
 export * from './types/block.js';
 export * from './types/statedelta.js';
