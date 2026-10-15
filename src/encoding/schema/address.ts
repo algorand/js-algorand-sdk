@@ -20,7 +20,7 @@ export class AddressSchema extends Schema {
   }
 
   public prepareMsgpack(data: unknown): MsgpackEncodingData {
-    if (data instanceof Address) {
+    if (Address.isAddress(data)) {
       return data.publicKey;
     }
     throw new Error(`Invalid address: (${typeof data}) ${data}`);
@@ -40,7 +40,7 @@ export class AddressSchema extends Schema {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options: PrepareJSONOptions
   ): JSONEncodingData {
-    if (data instanceof Address) {
+    if (Address.isAddress(data)) {
       return data.toString();
     }
     throw new Error(`Invalid address: (${typeof data}) ${data}`);
