@@ -30,6 +30,10 @@ export class ByteArraySchema extends Schema {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _rawStringProvider: MsgpackRawStringProvider
   ): Uint8Array {
+    if (encoded === null || encoded === undefined) {
+      // algod/indexer omit empty binaries as msgpack nil (decoded as JS null)
+      return this.defaultValue();
+    }
     if (encoded instanceof Uint8Array) {
       return encoded;
     }
