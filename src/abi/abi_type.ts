@@ -128,6 +128,20 @@ export abstract class ABIType {
 export class ABIUintType extends ABIType {
   bitSize: number;
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIUintType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIUintType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIUintType === true);
+  }
+
   constructor(size: number) {
     super();
     if (size % 8 !== 0 || size < 8 || size > 512) {
@@ -180,6 +194,20 @@ export class ABIUintType extends ABIType {
 export class ABIUfixedType extends ABIType {
   bitSize: number;
   precision: number;
+
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIUfixedType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIUfixedType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIUfixedType === true);
+  }
 
   constructor(size: number, denominator: number) {
     super();
@@ -239,6 +267,20 @@ export class ABIUfixedType extends ABIType {
 }
 
 export class ABIAddressType extends ABIType {
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIAddressType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIAddressType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIAddressType === true);
+  }
+
   toString() {
     return 'address';
   }
@@ -285,6 +327,20 @@ export class ABIAddressType extends ABIType {
 }
 
 export class ABIBoolType extends ABIType {
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIBoolType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIBoolType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIBoolType === true);
+  }
+
   toString() {
     return 'bool';
   }
@@ -327,6 +383,20 @@ export class ABIBoolType extends ABIType {
 }
 
 export class ABIByteType extends ABIType {
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIByteType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIByteType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIByteType === true);
+  }
+
   toString() {
     return 'byte';
   }
@@ -366,6 +436,20 @@ export class ABIByteType extends ABIType {
 }
 
 export class ABIStringType extends ABIType {
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIStringType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIStringType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIStringType === true);
+  }
+
   toString() {
     return 'string';
   }
@@ -433,6 +517,20 @@ export class ABIArrayStaticType extends ABIType {
   childType: ABIType;
   staticLength: number;
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIArrayStaticType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIArrayStaticType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIArrayStaticType === true);
+  }
+
   constructor(argType: ABIType, arrayLength: number) {
     super();
     if (arrayLength < 0) {
@@ -493,6 +591,20 @@ export class ABIArrayStaticType extends ABIType {
 export class ABIArrayDynamicType extends ABIType {
   childType: ABIType;
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIArrayDynamicType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIArrayDynamicType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIArrayDynamicType === true);
+  }
+
   constructor(argType: ABIType) {
     super();
     this.childType = argType;
@@ -547,6 +659,20 @@ export class ABIArrayDynamicType extends ABIType {
 
 export class ABITupleType extends ABIType {
   childTypes: ABIType[];
+
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABITupleType = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABITupleType, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABITupleType === true);
+  }
 
   constructor(argTypes: ABIType[]) {
     super();
