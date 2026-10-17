@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Algosdk Mocha Browser Testing</title>
@@ -7,16 +8,25 @@
 
   <body>
     <h1>Algosdk Mocha Browser Testing</h1>
+    
     <div id="mocha"></div>
 
     <script src="../../node_modules/mocha/mocha.js"></script>
 
-    <script class="mocha-init">
-      // this is necessary to get assert to work, since assert uses util and util checks process.env.NODE_DEBUG
+    <script>
+      // Fix for 'assert' and other Node.js built-ins that rely on the 'process' global 
+      // when running inside a browser environment. This is often necessary when 
+      // the bundled code includes Node.js dependencies.
       window.process = { env: {} };
 
+      // Configure and set up the Mocha environment
       mocha.setup('bdd');
     </script>
+    
     <script src="bundle.js"></script>
+    
+    <script>
+      mocha.run();
+    </script>
   </body>
 </html>
