@@ -105,7 +105,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     headers: Headers
   ): Record<string, string> {
     const headersObj: Record<string, string> = {};
-    headers.forEach((key, value) => {
+    headers.forEach((value, key) => {
       headersObj[key] = value;
     });
     return headersObj;

@@ -146,6 +146,23 @@ describe('client', () => {
       assert.throws(() => new HTTPClient({}, baseServer));
     });
   });
+  describe('URLTokenBaseHTTPClient response headers', () => {
+    it('maps response header names to their values', () => {
+      const headers = new Headers([
+        ['content-type', 'application/json'],
+        ['x-request-id', 'synthetic-response'],
+      ]);
+      // eslint-disable-next-line dot-notation
+      const actual = URLTokenBaseHTTPClient['formatFetchResponseHeaders'](
+        headers
+      );
+
+      assert.deepStrictEqual(actual, {
+        'content-type': 'application/json',
+        'x-request-id': 'synthetic-response',
+      });
+    });
+  });
   describe('AlgodClient construction', () => {
     function getBaseClient(client: AlgodClient): URLTokenBaseHTTPClient {
       // eslint-disable-next-line dot-notation
