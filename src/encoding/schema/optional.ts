@@ -70,3 +70,20 @@ export class OptionalSchema extends Schema {
     return this.valueSchema.fromPreparedJSON(encoded);
   }
 }
+
+/**
+ * SparseOptionalSchema is like OptionalSchema, except that for the purpose of omitEmpty only
+ * `undefined` is considered a default (omittable) value. The wrapped schema's own default values
+ * (for example 0 for Uint64Schema) are preserved and encoded rather than dropped.
+ *
+ * Use this for fields where a zero value is semantically meaningful and must be distinguished from
+ * an absent value. For example, an online key registration's `voteFirst` round may legitimately be
+ * 0, and omitting it corrupts the participation window (see
+ * https://github.com/algorand/js-algorand-sdk/issues/925). The field still needs to be omittable so
+ * that it is absent on transactions of other types.
+ */
+export class SparseOptionalSchema extends OptionalSchema {
+  public isDefaultValue(data: unknown): boolean {
+    return data === undefined;
+  }
+}
