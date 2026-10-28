@@ -16,6 +16,7 @@ import {
   NamedMapSchema,
   BooleanSchema,
   OptionalSchema,
+  SparseOptionalSchema,
   allOmitEmpty,
 } from './encoding/schema/index.js';
 import * as nacl from './nacl/naclWrappers.js';
@@ -384,9 +385,21 @@ export class Transaction implements encoding.Encodable {
         key: 'sprfkey',
         valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
       },
-      { key: 'votefst', valueSchema: new OptionalSchema(new Uint64Schema()) },
-      { key: 'votelst', valueSchema: new OptionalSchema(new Uint64Schema()) },
-      { key: 'votekd', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      // These use SparseOptionalSchema so that a legitimate 0 value (e.g. voteFirst=0) is preserved
+      // during encoding rather than being dropped as an omit-empty default (see issue #925). The
+      // fields remain omittable so they are absent on non-keyreg transactions.
+      {
+        key: 'votefst',
+        valueSchema: new SparseOptionalSchema(new Uint64Schema()),
+      },
+      {
+        key: 'votelst',
+        valueSchema: new SparseOptionalSchema(new Uint64Schema()),
+      },
+      {
+        key: 'votekd',
+        valueSchema: new SparseOptionalSchema(new Uint64Schema()),
+      },
       { key: 'nonpart', valueSchema: new OptionalSchema(new BooleanSchema()) },
       // AssetConfig
       { key: 'caid', valueSchema: new OptionalSchema(new Uint64Schema()) },

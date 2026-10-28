@@ -21,6 +21,6 @@ export {
   ByteArrayMapSchema,
   SpecialCaseBinaryStringMapSchema,
 } from './map.js';
-export { OptionalSchema } from './optional.js';
+export { OptionalSchema, SparseOptionalSchema } from './optional.js';
 
 export { UntypedSchema } from './untyped.js';

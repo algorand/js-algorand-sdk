@@ -698,6 +698,59 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize an online key registration transaction with voteFirst=0 from msgpack representation', () => {
+      // Regression test for https://github.com/algorand/js-algorand-sdk/issues/925
+      // voteFirst=0 is a legitimate round value but was being dropped during
+      // msgpack encoding (treated as an omit-empty default), which corrupted the
+      // online key registration window and caused decode to throw
+      // "Online key registration missing at least one of the following fields...".
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        keyregParams: {
+          voteKey: algosdk.base64ToBytes(
+            '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+          ),
+          selectionKey: algosdk.base64ToBytes(
+            'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+          ),
+          stateProofKey: algosdk.base64ToBytes(
+            'mgh7ddGf7dF1Z5/9RDzN/JZZF9yA7XYCKJXvqhwPdvI7pLKh7hizaM5rTC2kizVOpVRIU9PXSLeapvBJ/OxQYA=='
+          ),
+          voteFirst: 0,
+          voteLast: 61,
+          voteKeyDilution: 1234,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      // voteFirst must round-trip as 0, not be dropped.
+      assert.strictEqual(expectedTxn.keyreg!.voteFirst, BigInt(0));
+
+      const encTxn = algosdk.encodeMsgpack(expectedTxn);
+      const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
+      assert.deepStrictEqual(decTxn, expectedTxn);
+      assert.strictEqual(decTxn.keyreg!.voteFirst, BigInt(0));
+
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
+      assert.deepStrictEqual(reencRep, encRep);
+      // The encoded msgpack map must actually contain the votefst key.
+      assert.ok(
+        (encRep as Map<string, unknown>).get('votefst') === BigInt(0),
+        'votefst must be present and equal to 0 in the encoding data'
+      );
+    });
+
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation', () => {
       const expectedTxn = new algosdk.Transaction({
         type: algosdk.TransactionType.keyreg,
