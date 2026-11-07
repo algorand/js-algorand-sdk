@@ -828,4 +828,107 @@ describe('ABI encoding', () => {
       /local state schema cannot be changed/
     );
   });
+
+  it('should expose transactions with getter methods without changing status', () => {
+    const composer = new AtomicTransactionComposer();
+    const sender = 'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
+    const suggestedParams = {
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
+      genesisID: '',
+      firstValid: 0,
+      lastValid: 1000,
+      fee: 1000,
+      flatFee: true,
+      minFee: 1000,
+    };
+    const signer = makeBasicAccountTransactionSigner({
+      addr: decodeAddress(sender),
+      sk: new Uint8Array(64),
+    });
+
+    assert.strictEqual(composer.count(), 0);
+    assert.deepStrictEqual(composer.getTransactions(), []);
+    assert.strictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+    assert.throws(() => composer.getTransaction(0), /out of bounds/);
+    assert.throws(() => composer.getTransaction(-1), /out of bounds/);
+
+    const payTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver: sender,
+      amount: 1000,
+      suggestedParams,
+    });
+    composer.addTransaction({ txn: payTxn, signer });
+
+    assert.strictEqual(composer.count(), 1);
+    assert.strictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+    assert.strictEqual(composer.getTransaction(0).txn, payTxn);
+    assert.strictEqual(composer.getTransaction(0).signer, signer);
+
+    const txns = composer.getTransactions();
+    assert.strictEqual(txns.length, 1);
+    assert.strictEqual(txns[0].txn, payTxn);
+
+    // Verify modifying the returned array does not mutate internal composer state
+    txns.pop();
+    assert.strictEqual(composer.count(), 1);
+    assert.strictEqual(composer.getTransactions().length, 1);
+  });
+
+  it('should return the created application call transaction from addMethodCall', () => {
+    const composer = new AtomicTransactionComposer();
+    const sender = 'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
+    const suggestedParams = {
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
+      genesisID: '',
+      firstValid: 0,
+      lastValid: 1000,
+      fee: 1000,
+      flatFee: true,
+      minFee: 1000,
+    };
+    const signer = makeBasicAccountTransactionSigner({
+      addr: decodeAddress(sender),
+      sk: new Uint8Array(64),
+    });
+
+    const payTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver: sender,
+      amount: 1000,
+      suggestedParams,
+    });
+
+    const method = ABIMethod.fromSignature('test(pay,uint64)uint64');
+    const appTxn = composer.addMethodCall({
+      appID: 12345,
+      method,
+      methodArgs: [{ txn: payTxn, signer }, 42],
+      sender,
+      suggestedParams,
+      signer,
+    });
+
+    assert.ok(appTxn);
+    assert.strictEqual(composer.count(), 2);
+    assert.strictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+
+    // Verify index 0 is the payTxn argument and index 1 is the app call
+    assert.strictEqual(composer.getTransaction(0).txn, payTxn);
+    assert.strictEqual(composer.getTransaction(1).txn, appTxn);
+    assert.strictEqual(composer.getTransactions()[1].txn, appTxn);
+  });
 });

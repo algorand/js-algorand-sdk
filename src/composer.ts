@@ -146,6 +146,32 @@ export class AtomicTransactionComposer {
   }
 
   /**
+   * Get an individual transaction with its signer from this composer by index.
+   *
+   * This is a read-only operation and will not change the composer's status.
+   *
+   * @param index - The 0-based index of the transaction to get
+   * @returns The transaction with its signer at the specified index
+   */
+  getTransaction(index: number): TransactionWithSigner {
+    if (index < 0 || index >= this.transactions.length) {
+      throw new Error(`Transaction index out of bounds: ${index}`);
+    }
+    return this.transactions[index];
+  }
+
+  /**
+   * Get a copy of the transactions with their signers currently in this atomic group.
+   *
+   * This is a read-only operation and will not change the composer's status.
+   *
+   * @returns An array of transactions with their signers constructed so far
+   */
+  getTransactions(): TransactionWithSigner[] {
+    return [...this.transactions];
+  }
+
+  /**
    * Create a new composer with the same underlying transactions. The new composer's status will be
    * BUILDING, so additional transactions may be added to it.
    */
@@ -271,7 +297,7 @@ export class AtomicTransactionComposer {
     rejectVersion?: number | bigint;
     /** A transaction signer that can authorize this application call from sender */
     signer: TransactionSigner;
-  }): void {
+  }): Transaction {
     if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
       throw new Error(
         'Cannot add transactions when composer status is not BUILDING'
@@ -511,6 +537,7 @@ export class AtomicTransactionComposer {
 
     this.transactions.push(...txnArgs, appCall);
     this.methodCalls.set(this.transactions.length - 1, method);
+    return appCall.txn;
   }
 
   /**
