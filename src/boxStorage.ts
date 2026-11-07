@@ -10,7 +10,9 @@ function boxReferenceToEncodingData(
   const isOwnReference = referenceId === BigInt(0) || referenceId === appIndex;
 
   // Foreign apps start from index 1; index 0 is its own app ID.
-  const index = foreignApps.indexOf(referenceId) + 1;
+  // An appIndex of 0 in BoxReference explicitly refers to the current application.
+  const index =
+    referenceId === BigInt(0) ? 0 : foreignApps.indexOf(referenceId) + 1;
 
   // Check if the app referenced is itself after checking the foreign apps array.
   // If index is zero, then the app ID was not found in the foreign apps array

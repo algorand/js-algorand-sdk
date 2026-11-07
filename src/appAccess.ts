@@ -26,21 +26,27 @@ export function resourceReferencesToEncodingData(
         (target.address &&
           aAddress &&
           (target.address as Address).equals(aAddress));
-      if (
-        addressesEqual &&
-        a.get('s') === target.assetIndex &&
-        a.get('p') === target.appIndex
-      ) {
+      const assetEqual =
+        (target.assetIndex == null && a.get('s') == null) ||
+        (target.assetIndex != null &&
+          a.get('s') != null &&
+          BigInt(target.assetIndex) === BigInt(a.get('s') as number | bigint));
+      const appEqual =
+        (target.appIndex == null && a.get('p') == null) ||
+        (target.appIndex != null &&
+          a.get('p') != null &&
+          BigInt(target.appIndex) === BigInt(a.get('p') as number | bigint));
+      if (addressesEqual && assetEqual && appEqual) {
         return idx + 1; // 1-based index
       }
     }
-    if (target.address) {
+    if (target.address != null) {
       accessList.push(new Map<string, unknown>([['d', target.address]]));
     }
-    if (target.assetIndex) {
+    if (target.assetIndex != null) {
       accessList.push(new Map<string, unknown>([['s', target.assetIndex]]));
     }
-    if (target.appIndex) {
+    if (target.appIndex != null) {
       accessList.push(new Map<string, unknown>([['p', target.appIndex]]));
     }
     return accessList.length; // length is 1-based position of new element
@@ -48,7 +54,7 @@ export function resourceReferencesToEncodingData(
 
   const zeroAddr = Address.zeroAddress();
   for (const rr of references) {
-    if (rr.address || rr.assetIndex || rr.appIndex) {
+    if (rr.address != null || rr.assetIndex != null || rr.appIndex != null) {
       ensure(rr);
       continue;
     }
@@ -80,7 +86,11 @@ export function resourceReferencesToEncodingData(
         addrIdx = ensure({ address: l.address });
       }
       let appIdx = 0;
-      if (l.appIndex && BigInt(l.appIndex) !== appIndex) {
+      if (
+        l.appIndex != null &&
+        BigInt(l.appIndex) !== BigInt(0) &&
+        BigInt(l.appIndex) !== appIndex
+      ) {
         appIdx = ensure({ appIndex: l.appIndex });
       }
       accessList.push(
@@ -99,7 +109,11 @@ export function resourceReferencesToEncodingData(
     if (rr.box) {
       const b = rr.box;
       let appIdx = 0;
-      if (b.appIndex && BigInt(b.appIndex) !== appIndex) {
+      if (
+        b.appIndex != null &&
+        BigInt(b.appIndex) !== BigInt(0) &&
+        BigInt(b.appIndex) !== appIndex
+      ) {
         appIdx = ensure({ appIndex: b.appIndex });
       }
       accessList.push(
@@ -131,15 +145,15 @@ export function convertIndicesToResourceReferences(
     const address = item.get('d') as Address | undefined;
     const assetIndex = item.get('s') as bigint | undefined;
     const appIndex = item.get('p') as bigint | undefined;
-    if (address) {
+    if (address != null) {
       references.push({ address });
       continue;
     }
-    if (assetIndex) {
+    if (assetIndex != null) {
       references.push({ assetIndex });
       continue;
     }
-    if (appIndex) {
+    if (appIndex != null) {
       references.push({ appIndex });
       continue;
     }
@@ -258,7 +272,7 @@ export function foreignArraysToResourceReferences({
   function ensureAsset(asset: number | bigint) {
     let assetFound = false;
     for (const rr of accessList) {
-      if (rr.assetIndex === asset) {
+      if (rr.assetIndex != null && BigInt(rr.assetIndex) === BigInt(asset)) {
         assetFound = true;
         break;
       }
@@ -270,7 +284,7 @@ export function foreignArraysToResourceReferences({
   function ensureApp(app: number | bigint) {
     let appFound = false;
     for (const rr of accessList) {
-      if (rr.appIndex === app) {
+      if (rr.appIndex != null && BigInt(rr.appIndex) === BigInt(app)) {
         appFound = true;
         break;
       }
@@ -299,13 +313,21 @@ export function foreignArraysToResourceReferences({
     if (local.address) {
       ensureAddress(local.address);
     }
-    if (local.appIndex && BigInt(local.appIndex) !== appIndex) {
+    if (
+      local.appIndex != null &&
+      BigInt(local.appIndex) !== BigInt(0) &&
+      BigInt(local.appIndex) !== appIndex
+    ) {
       ensureApp(local.appIndex);
     }
     accessList.push({ locals: local });
   }
   for (const box of boxes ?? []) {
-    if (box.appIndex && BigInt(box.appIndex) !== appIndex) {
+    if (
+      box.appIndex != null &&
+      BigInt(box.appIndex) !== BigInt(0) &&
+      BigInt(box.appIndex) !== appIndex
+    ) {
       ensureApp(box.appIndex);
     }
     accessList.push({ box });

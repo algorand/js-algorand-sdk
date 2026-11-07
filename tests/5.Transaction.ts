@@ -4,6 +4,7 @@ import algosdk, { HoldingReference, LocalsReference } from '../src/index.js';
 import { Address } from '../src/encoding/address.js';
 import { boxReferencesToEncodingData } from '../src/boxStorage.js';
 import {
+  convertIndicesToResourceReferences,
   foreignArraysToResourceReferences,
   resourceReferencesToEncodingData,
 } from '../src/appAccess.js';
@@ -3109,5 +3110,40 @@ describe('Application Resources References', () => {
     const redecoded = algosdk.decodeUnsignedTransaction(encoded);
     assert.ok(redecoded.applicationCall?.access);
     assert.strictEqual(redecoded.applicationCall.access.length, 4);
+  });
+
+  it('should support appIndex 0 and assetIndex 0 in resource references and access list (#946)', () => {
+    const appIndex = 1234;
+
+    // 1. foreignArraysToResourceReferences should preserve 0 for foreignApps and foreignAssets
+    const references = foreignArraysToResourceReferences({
+      appIndex,
+      foreignAssets: [0],
+      foreignApps: [0],
+    });
+    assert.strictEqual(references.length, 2);
+    assert.strictEqual(references[0].assetIndex, 0);
+    assert.strictEqual(references[1].appIndex, 0);
+
+    // 2. resourceReferencesToEncodingData should not drop 0 or convert it to empty map
+    const encodedData = resourceReferencesToEncodingData(
+      BigInt(appIndex),
+      references
+    );
+    assert.strictEqual(encodedData.length, 2);
+    assert.strictEqual(encodedData[0].get('s'), 0);
+    assert.strictEqual(encodedData[1].get('p'), 0);
+
+    // 3. convertIndicesToResourceReferences should decode 0 without falling back to empty box
+    const decodedReferences = convertIndicesToResourceReferences(encodedData);
+    assert.strictEqual(decodedReferences.length, 2);
+    assert.strictEqual(decodedReferences[0].assetIndex, 0);
+    assert.strictEqual(decodedReferences[1].appIndex, 0);
+
+    // 4. boxReferencesToEncodingData should keep index 0 for own box reference even if foreignApps contains 0
+    const ownBox = { appIndex: 0, name: Uint8Array.from([1, 2, 3]) };
+    const encodedBox = boxReferencesToEncodingData([ownBox], [0], appIndex);
+    assert.strictEqual(encodedBox.length, 1);
+    assert.strictEqual(encodedBox[0].get('i'), 0);
   });
 });
