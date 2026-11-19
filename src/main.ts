@@ -28,7 +28,11 @@ export {
   CustomTokenHeader,
   TokenHeader,
 } from './client/urlTokenBaseHTTPClient.js';
-export { waitForConfirmation } from './wait.js';
+export {
+  waitForConfirmation,
+  TransactionRejectedError,
+  TransactionConfirmationTimeoutError,
+} from './wait.js';
 export {
   MsgpackEncodingData,
   JSONEncodingData,

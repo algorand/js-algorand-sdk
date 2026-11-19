@@ -1,6 +1,31 @@
 import { AlgodClient } from './client/v2/algod/algod.js';
 import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
 
+/** An algod node reported that the transaction was rejected from its pool. */
+export class TransactionRejectedError extends Error {
+  constructor(
+    public readonly txid: string,
+    public readonly poolError: string
+  ) {
+    super(`Transaction Rejected: ${poolError}`);
+    this.name = 'TransactionRejectedError';
+  }
+}
+
+/**
+ * The requested confirmation window elapsed. The transaction may still confirm
+ * later; a timeout does not establish that the transaction was rejected.
+ */
+export class TransactionConfirmationTimeoutError extends Error {
+  constructor(
+    public readonly txid: string,
+    public readonly waitRounds: number
+  ) {
+    super(`Transaction not confirmed after ${waitRounds} rounds`);
+    this.name = 'TransactionConfirmationTimeoutError';
+  }
+}
+
 /**
  * Wait until a transaction has been confirmed or rejected by the network, or
  * until 'waitRounds' number of rounds have passed.
@@ -9,6 +34,9 @@ import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
  * @param waitRounds - The maximum number of rounds to wait for.
  * @returns A promise that, upon success, will resolve to the output of the
  *   `pendingTransactionInformation` call for the confirmed transaction.
+ * @throws {@link TransactionRejectedError} if algod reports a pool rejection.
+ * @throws {@link TransactionConfirmationTimeoutError} if the round limit expires.
+ * Errors from status requests are propagated unchanged and do not imply rejection.
  */
 export async function waitForConfirmation(
   client: AlgodClient,
@@ -40,7 +68,7 @@ export async function waitForConfirmation(
       if (pendingInfo.poolError) {
         // If there was a pool error, then the transaction has been rejected
         poolError = true;
-        throw new Error(`Transaction Rejected: ${pendingInfo.poolError}`);
+        throw new TransactionRejectedError(txid, pendingInfo.poolError);
       }
     } catch (err) {
       // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod
@@ -56,5 +84,5 @@ export async function waitForConfirmation(
     currentRound += BigInt(1);
   }
   /* eslint-enable no-await-in-loop */
-  throw new Error(`Transaction not confirmed after ${waitRounds} rounds`);
+  throw new TransactionConfirmationTimeoutError(txid, waitRounds);
 }
